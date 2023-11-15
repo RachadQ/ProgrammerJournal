@@ -5,6 +5,9 @@ node_modules/
 /.pnp
 .pnp.js
 
+# Ignore package.json
+package.json
+
 # testing
 /coverage
 
@@ -30,3 +33,13 @@ yarn-error.log*
 tsconfig.json
 tsconfig.tsbuildinfo
 .env
+
+# Ignore all files named 'manifest' with any extension
+manifest.*
+
+# Ignore specific files named 'manifest' with different extensions
+manifest.json
+manifest.xml
+
+# Ignore npm package lock file
+package-lock.json
