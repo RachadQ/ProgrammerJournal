@@ -12,6 +12,15 @@ web-build/
 .env
 # macOS
 .DS_Store
-
+# Ignore npm dependencies
+node_modules/
 # Temporary files created by Metro to check the health of the file watcher
 .metro-health-check*
+
+# Ignore TypeScript build output
+/dist/
+/build/
+
+# Ignore TypeScript configuration files
+tsconfig.json
+tsconfig.tsbuildinfo
