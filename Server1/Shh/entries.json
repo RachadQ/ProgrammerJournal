@@ -1,0 +1,16 @@
+[
+    {
+    "id": 1,
+    "title": "First Entry",
+    "content": "This is the content of the first entry.",
+    "tags": ["tag1", "tag2"],
+    "user": 1 
+  },
+  {
+    "id": 2,
+    "title": "Second Entry",
+    "content": "Content for the second entry goes here.",
+    "tags": ["tag2", "tag3"],
+    "user": 1
+  }
+]

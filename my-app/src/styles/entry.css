@@ -1,0 +1,39 @@
+/* Assuming a container for each journal entry is given the class .journal-post */
+.journal-post {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .journal-post h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  .journal-post p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+  }
+  
+  .journal-post p:last-child {
+    margin-bottom: 0;
+  }
+  
+  .journal-post p:last-child::before {
+    content: "Tags: ";
+    font-weight: bold;
+  }
+  
+  .journal-post ul {
+    margin-top: 5px;
+    padding-left: 20px;
+  }
+  
+  .journal-post ul li {
+    display: inline;
+    margin-right: 10px;
+  }
