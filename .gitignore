@@ -41,6 +41,3 @@ manifest.*
 # Ignore specific files named 'manifest' with different extensions
 manifest.json
 manifest.xml
-
-# Ignore npm package lock file
-package-lock.json
