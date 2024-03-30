@@ -6,9 +6,6 @@ node_modules/
 /.pnp
 .pnp.js
 
-# Ignore package.json
-package.json
-
 # testing
 /coverage
 
