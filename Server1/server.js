@@ -6,7 +6,7 @@ const router = new express.Router()
 // ADD THIS
 const cors = require('cors');
 
-
+const usersController = require("./controller/users")
 // get config
 const config = require(__basedir + '/config')
 const {
@@ -20,6 +20,7 @@ require(__basedir + '/helpers/mongoose')
 
 // Configure body-parser to handle JSON data
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended:true}));
 // Custom CORS middleware
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -32,6 +33,8 @@ const User = require(__basedir + '/models/user');
 router.get('/user', async(req, res) => {
  res.send("hello");
 })
+
+router.post('/api/users',usersController.register )
 
 //create a new journal entry
 router.get('/entriess', async (req, res) => {
