@@ -46,6 +46,7 @@ interface JournalEntry {
     };
   
     return (
+      
       <div className="new-entry-form">
         <h2>Create a New Journal Entry</h2>
         <form onSubmit={handleSubmit}>

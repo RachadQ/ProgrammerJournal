@@ -17,6 +17,17 @@ const app = express();
 // connect to the database
 require(__basedir + '/helpers/mongoose')
 
+//generate a unique Username
+function generateUsername(firstName, lastName)
+{
+   // Create a base username from first and last name
+   const baseUsername = `${firstName.toLowerCase()}${lastName.toLowerCase()}`;
+   // Add a random number to make it unique
+  const randomNumber = Math.floor(Math.random() * 10000);
+
+  // Combine base username with random number
+  return `${baseUsername}${randomNumber}`;
+}
 
 // Configure body-parser to handle JSON data
 app.use(bodyParser.json());
@@ -30,11 +41,13 @@ app.use(cors({
 const Entry = require(__basedir + '/models/entry');
 const User = require(__basedir + '/models/user');
 
+function generateUniqueId() {
+  return Math.random().toString(30).substr(2, 9); // Generates a random alphanumeric string
+}
 router.get('/user', async(req, res) => {
  res.send("hello");
 })
 
-router.post('/api/users',usersController.register )
 
 //create a new journal entry
 router.get('/entriess', async (req, res) => {
@@ -60,6 +73,73 @@ router.get('/entriess', async (req, res) => {
       // Handle any errors that occur during the creation process
       res.status(500).json({ message: 'Failed to create journal entry', error: error.message });
   }
+})
+//create a new User 
+router.post('/users', async(req,res) => {
+  try {
+  
+    const {firstName, lastName, email, password, profilePicture} = req.body;
+   
+    //validate required fields
+    if(!firstName || !lastName || !email || !password)
+    {
+      return res.status(400).json({message: 'First name, Last name, email, and password are required.'})
+    }
+    
+    //check if the email is already in use
+    const existingUser = await User.findOne({email});
+    if(existingUser)
+    {
+      return res.status(400).json({message: 'Email is already in use.'})
+      
+    }
+      // Check if the username is already in use
+     let username = generateUsername(firstName,lastName);
+      let existingUsername = await User.findOne({username});
+     //check if generated username already exists in the database
+     while(existingUsername)
+     {
+      //if the username exists, regenerate the username with a new random number
+      username = generateUsername(firstName,lastName);
+     }
+
+    //Create a new user instance
+    const newUser = new User(
+      {id:generateUniqueId(),
+        firstName, 
+        lastName,
+        email,
+        password,
+        profilePicture,
+        username,
+      }
+    );
+
+    // save the user to the database
+    const savedUser = await newUser.save();
+
+    //Respond with the saved User
+    res.status(201).json(
+      {
+        message: 'User created successfully',
+        user:{
+          id:savedUser._id,
+          firstName: savedUser.firstName,
+          lastName: savedUser.lastName,
+          email: savedUser.email,
+          profilePicture: savedUser.profilePicture,
+          username: savedUser.username,
+          createdAt: savedUser.createdAt,
+          updatedAt: savedUser.updatedAt,
+        }
+      }
+    )
+  }
+  catch(err)
+  {
+    console.error(err);
+        res.status(500).json({ message: 'An error occurred while creating the user.', error: err.message });
+}
 })
 router.get('/user/:username', async (req,res) =>{
 

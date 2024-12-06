@@ -4,3 +4,5 @@ export interface User{
     password: string;
     createdAt: Date;
 }
+
+export interface UserDocument extends User,Document{}
