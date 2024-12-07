@@ -64,6 +64,11 @@ userSchema.methods.validatePassword = function(password)
     return bcryptjs.compare(password,this.password);
 }
 
+//compare the provided password with the hashed password
+userSchema.methods.comparePassword = function(password){
+    return bcryptjs.compare(password,this.password);
+}
+
 // Create the User model
 const User = mongoose.model('User', userSchema);
 

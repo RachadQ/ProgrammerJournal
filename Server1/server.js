@@ -1,5 +1,7 @@
 global.__basedir = __dirname;
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser');
 const { Route } = require('react-router-dom');
 const router = new express.Router()
@@ -12,11 +14,11 @@ const config = require(__basedir + '/config')
 const {
   PORT: port,
 } = config
-
+const JWT_SECRET = process.env.ACCESS_TOKEN_SECRET
 const app = express();
 // connect to the database
 require(__basedir + '/helpers/mongoose')
-
+app.use(express.json())
 //generate a unique Username
 function generateUsername(firstName, lastName)
 {
@@ -51,7 +53,7 @@ router.get('/user', async(req, res) => {
 
 //create a new journal entry
 router.get('/entriess', async (req, res) => {
-  console.log("reach");
+ 
   try{
   //Get route to retrieve use and their entries
  // const { id, title, content, tags, userId } = req.body; //for later
@@ -157,7 +159,8 @@ router.get('/user/:username', async (req,res) =>{
     const entries = await Entry.find({ user: user._id })
      //Find all entries associated with the user object ID
    //  const entries = await Entry.find({ user: user._id }).populate('user')
-    console.log(entries);
+   
+
     //Return user and their entries
   
     return res.status(200).send({user,entries});
@@ -167,6 +170,71 @@ router.get('/user/:username', async (req,res) =>{
 }
 );
 
+
+router.post('/login',async (req,res) =>
+{
+  
+  try{
+    const {email,password} = req.body;
+    
+    //valuate required field
+    if(!email || !password)
+    {
+      return res.status(400).json({message: 'Email and password are required'})
+    }
+
+    //check if the user exists by email
+    const user = await User.findOne({email}).select('+password');
+  
+    // Ensure user has a password in the database
+    if (!user.password) {
+        console.error('Password not found for user:', user);
+        return res.status(500).json({ message: 'User password is missing in the database.' });
+    }
+
+    if(!user)
+    {
+      return res.status(400).json({message: 'invalid credentials'});
+
+    }
+
+    //compare the provided password with the stored hashed password
+    const isPasswordMatch = await user.comparePassword(password);
+    
+    if(!isPasswordMatch)
+    {
+      return res.status(400).json({message: 'Invalid credentials'})
+    }
+s
+    //generate JWT token
+    const token = jwt.sign({id: user._id,username: user.username},JWT_SECRET,
+      {
+        expiresIn: '1h'
+      }
+    );
+
+     // Respond with the user info and token
+     res.status(200).json({
+      message: 'Login successful',
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        username: user.username,
+        profilePicture: user.profilePicture,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+      token, // Send the JWT token to the client
+    });
+  }
+  catch(err)
+  {
+    res.status(500).json({ message: 'An error occurred during login.', error: err.message });
+  }
+}
+)
 app.use(router)
 
 
