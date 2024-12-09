@@ -51,6 +51,21 @@ router.get('/user', async(req, res) => {
 })
 
 
+//middleware to verify JWT token
+const authenticateToken = (req,res,next) =>
+{
+  const authHeader = req.headers.authenticateToken;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if(!token) return res.status(401).json({message: 'Token is required'});
+
+  jwt.verify(token,JWT_SECRET,(err,user) =>{
+    if(err) return res.status(403).json({message: 'Invalid or expired token'});
+    req.user = user;
+    next();
+  })
+}
+
 //create a new journal entry
 router.get('/entriess', async (req, res) => {
  
@@ -205,7 +220,7 @@ router.post('/login',async (req,res) =>
     {
       return res.status(400).json({message: 'Invalid credentials'})
     }
-s
+
     //generate JWT token
     const token = jwt.sign({id: user._id,username: user.username},JWT_SECRET,
       {
