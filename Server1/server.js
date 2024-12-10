@@ -66,6 +66,52 @@ const authenticateToken = (req,res,next) =>
   })
 }
 
+router.put('/profile/:username',authenticateToken,async(req,res)=>
+{
+  try{
+    //extract username from URL
+    const usernameParam = req.params.username;
+    const { username: tokenUsername } = req.user; // Username from the token
+    const updates = req.body;
+
+    
+      // Ensure the authenticated user is the one updating the profile
+      if (usernameParam !== tokenUsername) {
+        return res.status(403).json({ message: 'You can only edit your own profile' });
+      }
+
+      const updatedUser = await findOneAndUpdate(
+        { username: usernameParam }, 
+        updates, 
+        { new: true }
+      );
+  
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+        // Respond with the updated user info
+    res.status(200).json({
+      message: 'Profile updated successfully',
+      user: {
+        username: updatedUser.username,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        profilePicture: updatedUser.profilePicture,
+        createdAt: updatedUser.createdAt,
+        updatedAt: updatedUser.updatedAt,
+      },
+    });
+  }
+  catch(err)
+  {
+    res.status(500).json({ message: 'An error occurred during profile update.', error: err.message });
+
+  }
+}
+)
+
 //create a new journal entry
 router.get('/entriess', async (req, res) => {
  
