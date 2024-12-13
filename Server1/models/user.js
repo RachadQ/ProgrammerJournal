@@ -36,7 +36,12 @@ const userSchema = new mongoose.Schema
         type: String,
         unique: true,
         required:true
-       }
+       },
+
+       journalEntries: [{
+        type:mongoose.Schema.Types.ObjectId,
+        ref: 'Entry'
+       }]
         
         
     },
