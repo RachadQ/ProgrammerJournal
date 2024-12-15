@@ -19,17 +19,7 @@ const app = express();
 // connect to the database
 require(__basedir + '/helpers/mongoose')
 app.use(express.json())
-//generate a unique Username
-function generateUsername(firstName, lastName)
-{
-   // Create a base username from first and last name
-   const baseUsername = `${firstName.toLowerCase()}${lastName.toLowerCase()}`;
-   // Add a random number to make it unique
-  const randomNumber = Math.floor(Math.random() * 10000);
 
-  // Combine base username with random number
-  return `${baseUsername}${randomNumber}`;
-}
 
 // Configure body-parser to handle JSON data
 app.use(bodyParser.json());
@@ -43,15 +33,24 @@ app.use(cors({
 const Entry = require(__basedir + '/models/entry');
 const User = require(__basedir + '/models/user');
 
+//generate a unique Username
+function generateUsername(firstName, lastName)
+{
+   // Create a base username from first and last name
+   const baseUsername = `${firstName.toLowerCase()}${lastName.toLowerCase()}`;
+   // Add a random number to make it unique
+  const randomNumber = Math.floor(Math.random() * 10000);
+
+  // Combine base username with random number
+  return `${baseUsername}${randomNumber}`;
+}
+
 function generateUniqueId() {
   return Math.random().toString(30).substr(2, 9); // Generates a random alphanumeric string
 }
-router.get('/user', async(req, res) => {
- res.send("hello");
-})
 
 
-//middleware to verify JWT token
+//JWT Authentication Middleware
 const authenticateToken = (req,res,next) =>
 {
   const authHeader = req.headers.authenticateToken;
@@ -66,6 +65,7 @@ const authenticateToken = (req,res,next) =>
   })
 }
 
+//RUpdate profile route
 router.put('/profile/:username',authenticateToken,async(req,res)=>
 {
   try{
@@ -117,14 +117,14 @@ router.get('/entriess', async (req, res) => {
  
   try{
   //Get route to retrieve use and their entries
- // const { id, title, content, tags, userId } = req.body; //for later
+  const { title, content, tags, userId } = req.body; //for later
 
   // Create a new entry instance
   const newEntry = new Entry({
-    title: 'Hardcoded Title',
-    content:'This is a hardcoded content for a journal entry.',
-    tags: ['test', 'example'],
-    user: '65578f76db21b6112159cc40' // Assuming userId is provided in the request
+    title,
+    content,
+    tags,
+    user:userId,
   });
 
     // Save the new entry to the database
@@ -137,6 +137,7 @@ router.get('/entriess', async (req, res) => {
       res.status(500).json({ message: 'Failed to create journal entry', error: error.message });
   }
 })
+
 //create a new User 
 router.post('/users', async(req,res) => {
   try {
@@ -156,15 +157,12 @@ router.post('/users', async(req,res) => {
       return res.status(400).json({message: 'Email is already in use.'})
       
     }
-      // Check if the username is already in use
+
+    // Check if the username is already in use
      let username = generateUsername(firstName,lastName);
-      let existingUsername = await User.findOne({username});
-     //check if generated username already exists in the database
-     while(existingUsername)
-     {
-      //if the username exists, regenerate the username with a new random number
-      username = generateUsername(firstName,lastName);
-     }
+      while (await User.findOne({ username })) {
+      username = generateUsername(firstName, lastName);
+    }
 
     //Create a new user instance
     const newUser = new User(
@@ -204,7 +202,9 @@ router.post('/users', async(req,res) => {
         res.status(500).json({ message: 'An error occurred while creating the user.', error: err.message });
 }
 })
-router.get('/user/:username', async (req,res) =>{
+
+//get user by username
+router.get('/user/:username', authenticateToken, async (req,res) =>{
 
   const {username} = req.params;
 
@@ -238,7 +238,7 @@ router.get('/user/:username', async (req,res) =>{
 }
 );
 
-
+//login route
 router.post('/login',async (req,res) =>
 {
   
@@ -253,12 +253,6 @@ router.post('/login',async (req,res) =>
 
     //check if the user exists by email
     const user = await User.findOne({email}).select('+password');
-  
-    // Ensure user has a password in the database
-    if (!user.password) {
-        console.error('Password not found for user:', user);
-        return res.status(500).json({ message: 'User password is missing in the database.' });
-    }
 
     if(!user)
     {
