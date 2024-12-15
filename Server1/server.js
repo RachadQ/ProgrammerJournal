@@ -206,26 +206,33 @@ router.post('/users', async(req,res) => {
 })
 router.get('/user/:username', async (req,res) =>{
 
+  const {username} = req.params;
+
   try {
-    const {username} = req.params;
    
     //find user by username
-    const user = await User.findOne({Uname: username});
+    const user = await User.findOne({username}).populate('journalEntries').select('-password');
    
     //if user not found
     if(!user)
     {
       return res.status(404).json({ message: 'User not found' });
     }
-    const entries = await Entry.find({ user: user._id })
-     //Find all entries associated with the user object ID
-   //  const entries = await Entry.find({ user: user._id }).populate('user')
-   
 
-    //Return user and their entries
+    res.status(200).json({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      profilePicture: user.profilePicture,
+      username: user.username,
+      journalEntries: user.journalEntries,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+  });
   
-    return res.status(200).send({user,entries});
   } catch (error) {
+    console.error("Error fetching user by username:", error.message, error.stack);
     return res.status(500).json({ message: 'Server Error' });
   }
 }

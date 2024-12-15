@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema
 
        journalEntries: [{
         type:mongoose.Schema.Types.ObjectId,
-        ref: 'Entry'
+        ref: 'Entry',
        }]
         
         

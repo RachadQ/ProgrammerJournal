@@ -11,10 +11,11 @@ const entrySchema = new mongoose.Schema
         tags: [String],
         user:{
             type:mongoose.Schema.Types.ObjectId,
-            ref:'user',
-        }
-    }
+            ref:'User',require: true},
+
+    },
+    { timestamps: true }
 )
 
-const Entry = mongoose.model('entries',entrySchema)
+const Entry = mongoose.model('Entry',entrySchema)
 module.exports = Entry;
