@@ -4,6 +4,7 @@ import './App.css';
 import UserProfile from './components/userProfile';
 import { BrowserRouter as Router, Route, Routes  } from 'react-router-dom';
 import HomePage from './components/HomePage';
+import LoginPage from './components/Login'
 function App() {
 
   const profileData = {
@@ -18,7 +19,9 @@ function App() {
         <Routes>
           {/*<UserProfile profile={profileData} />*/}
           <Route path="/"  element={<HomePage/>} />
-          <Route path="/about" element={<UserProfile profile={profileData}/>} />
+          <Route path="/profile/:username" element={<UserProfile/>} />
+          {/* New route for login page */}
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
        </Router>
     </div>

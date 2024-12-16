@@ -4,7 +4,7 @@
   "description": "",
   "main": "config.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cross-env NODE_ENV=test jest",
     "start": "node server.js"
   },
   "keywords": [],
@@ -14,5 +14,9 @@
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^29.7.0"
   }
 }

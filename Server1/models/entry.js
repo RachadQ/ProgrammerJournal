@@ -8,7 +8,10 @@ const entrySchema = new mongoose.Schema
        
         title: String,
         content: String,
-        tags: [String],
+        tags: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Tag', 
+          }],
         user:{
             type:mongoose.Schema.Types.ObjectId,
             ref:'User',require: true},
