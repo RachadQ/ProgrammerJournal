@@ -231,7 +231,7 @@ router.post('/user/signUp', async(req,res) => {
       from:process.env.EMAIL_USER,
       to:email,
       subject: 'Email Verification',
-      html: `<p>Click <a href="http://localhost:3000/verify-email?token=${verificationToken}">here</a> to verify your email.</p>`,
+      html: `<p>Click <a href="http://localhost:3001/verify-email?token=${verificationToken}">here</a> to verify your email.</p>`,
     }
 
     await transporter.sendMail(mailOptions);
@@ -263,10 +263,12 @@ router.post('/user/signUp', async(req,res) => {
 //Email Verification EndPoint
 router.get('/verify-email', async(req,res) =>
 {
+ 
   const {token} = req.query;
+  console.log(token);
   try{
     //find user by verification token
-    const user = await User.findOne({verificationToken: token})
+    const user = await User.findOne({verificationToken: token}).select('+verificationToken');
     
     if (!user) {
       return res.status(400).json({ message: 'Invalid or expired verification token.' });

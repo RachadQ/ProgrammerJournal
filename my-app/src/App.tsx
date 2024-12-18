@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Route, Routes  } from 'react-router-dom';
 import HomePage from './components/HomePage';
 import LoginPage from './components/Login'
 import SignUp from './components/SignUp';
+import EmailVerification from "./components/EmailVerification";
 function App() {
 
   const profileData = {
@@ -25,6 +26,8 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
            {/* New route for SignUp page */}
           <Route path="/signUp" element={<SignUp/>} />
+          {/* New route for verifying email page */}
+          <Route path="/verify-email" element={<EmailVerification />} />
         </Routes>
        </Router>
     </div>
