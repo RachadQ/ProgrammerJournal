@@ -41,12 +41,31 @@ const userSchema = new mongoose.Schema
        journalEntries: [{
         type:mongoose.Schema.Types.ObjectId,
         ref: 'Entry',
-       }]
+       }],
+       //Email Verification fieldds
+       isVerified:{
+        type:Boolean,
+        default:false,
+       },
+       verificationToken:{
+        type:String,
+        select:false,
+       },
+       verificationTokenExpire: Date, // Expiry time for the token
         
         
     },
     {timestamps:true}
 );
+userSchema.method.generateVerificationToken = function () {
+//create a unqiue token
+const token = crypto.randomBytes(32).toString('hex');
+this.verificationToken = token;
+//make token expire in 1 hour
+this.verificationTokenExpire = Date.now() + 60 * 60 * 1000; 
+return token;
+
+};
 // this function will be called after create and secondaly after update
 userSchema.pre('save', async function(next)
 {

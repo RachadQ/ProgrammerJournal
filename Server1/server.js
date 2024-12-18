@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser');
 const { Route } = require('react-router-dom');
+const nodemailer = require('nodemailer');
 const router = new express.Router()
 // ADD THIS
 const cors = require('cors');
@@ -149,7 +150,7 @@ router.get('/entries', authenticateTokenasync, async (req, res) => {
 })
 
 //create a new User 
-router.post('/users', async(req,res) => {
+router.post('/user/signUp', async(req,res) => {
   try {
   
     const {firstName, lastName, email, password, profilePicture} = req.body;
@@ -186,8 +187,32 @@ router.post('/users', async(req,res) => {
       }
     );
 
+    //Gnerate verification token
+    const verificationToken = newUser.generateVerificationToken();
+
     // save the user to the database
     const savedUser = await newUser.save();
+
+    //send email verificattion link
+    const transporter = nodemailer.createTransport(
+      {
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        
+        },
+      }
+    )
+
+    const mailOption = {
+      from:process.env.EMAIL_USER,
+      to:email,
+      subject: 'Email Verification',
+      html: `<a href="http://yourapp.com/verify-email?token=${verificationToken}">here</a> to verify your email.</p>`,
+    }
+
+    await transporter.sendMail(mailOptions);
 
     //Respond with the saved User
     res.status(201).json(
@@ -212,6 +237,32 @@ router.post('/users', async(req,res) => {
         res.status(500).json({ message: 'An error occurred while creating the user.', error: err.message });
 }
 })
+
+//Email Verification EndPoint
+router.get('/verify-email', async(req,res) =>
+{
+  const {token} = req.query;
+  try{
+    //find user by verification token
+    const user = await User.findOne({verificationToken: token})
+    
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired verification token.' });
+    }
+
+    //mark user as verified
+    user.isVerified = true;
+    user.verificationToken = undefined; //clear the token
+    await user.save();
+    
+  }
+  catch(err)
+  {
+    console.error(error)
+    res.status(500).json({message: 'Error verifying email.', error: error.message})
+  }
+}
+)
 
 //get user by username
 router.get('/user/:username', authenticateToken, async (req,res) =>{
@@ -268,6 +319,11 @@ router.post('/login',async (req,res) =>
     {
       return res.status(400).json({message: 'invalid credentials'});
 
+    }
+
+     // Check if the user's email is verified
+     if (!user.isVerified) {
+      return res.status(403).json({ message: 'Please verify your email to activate your account.' });
     }
 
     //compare the provided password with the stored hashed password
