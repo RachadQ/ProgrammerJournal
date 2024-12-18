@@ -5,6 +5,7 @@ import UserProfile from './components/userProfile';
 import { BrowserRouter as Router, Route, Routes  } from 'react-router-dom';
 import HomePage from './components/HomePage';
 import LoginPage from './components/Login'
+import SignUp from './components/SignUp';
 function App() {
 
   const profileData = {
@@ -22,6 +23,8 @@ function App() {
           <Route path="/profile/:username" element={<UserProfile/>} />
           {/* New route for login page */}
           <Route path="/login" element={<LoginPage />} />
+           {/* New route for SignUp page */}
+          <Route path="/signUp" element={<SignUp/>} />
         </Routes>
        </Router>
     </div>

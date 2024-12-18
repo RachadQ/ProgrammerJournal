@@ -1,5 +1,6 @@
 //import mongoose
 const mongoose = require('mongoose');
+const { Schema } = mongoose; 
 
 //create journal schema
 const entrySchema = new mongoose.Schema

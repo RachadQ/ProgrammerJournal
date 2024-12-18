@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 const validator =  require('validator');
 const bcryptjs =  require('bcryptjs');
-
+const crypto = require('crypto');
 //create user schema
 const userSchema = new mongoose.Schema
 (
@@ -57,15 +57,18 @@ const userSchema = new mongoose.Schema
     },
     {timestamps:true}
 );
-userSchema.method.generateVerificationToken = function () {
-//create a unqiue token
-const token = crypto.randomBytes(32).toString('hex');
-this.verificationToken = token;
-//make token expire in 1 hour
-this.verificationTokenExpire = Date.now() + 60 * 60 * 1000; 
-return token;
-
-};
+// Method to generate the verification token
+userSchema.methods.generateVerificationToken = function () {
+    // Create a unique token using crypto
+    const token = crypto.randomBytes(32).toString('hex');
+    
+    // Assign the token and expiration time to the user instance
+    this.verificationToken = token;
+    this.verificationTokenExpire = Date.now() + 60 * 60 * 1000; // Token expires in 1 hour
+    
+    // Return the token
+    return token;
+  };
 // this function will be called after create and secondaly after update
 userSchema.pre('save', async function(next)
 {

@@ -121,7 +121,7 @@ router.put('/profile/:username',authenticateToken,async(req,res)=>
 )
 
 //create a new journal entry
-router.get('/entries', authenticateTokenasync, async (req, res) => {
+router.get('/entries', authenticateToken, async (req, res) => {
  
   try{
   //Get route to retrieve use and their entries
@@ -153,14 +153,25 @@ router.get('/entries', authenticateTokenasync, async (req, res) => {
 router.post('/user/signUp', async(req,res) => {
   try {
   
-    const {firstName, lastName, email, password, profilePicture} = req.body;
+    const {firstName, lastName, email, password,confirmPassword, profilePicture} = req.body;
    
     //validate required fields
-    if(!firstName || !lastName || !email || !password)
+    if(!firstName || !lastName || !email || !password || !confirmPassword)
     {
       return res.status(400).json({message: 'First name, Last name, email, and password are required.'})
     }
     
+     // Check if passwords match (but don't store confirmPassword in the model)
+     if (password !== confirmPassword) {
+      return res.status(400).json({ message: 'Passwords do not match.' });
+    }
+
+    //Validate email format
+    // Validate email format
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Please use a valid email address.' });
+    }
     //check if the email is already in use
     const existingUser = await User.findOne({email});
     if(existingUser)
@@ -193,23 +204,34 @@ router.post('/user/signUp', async(req,res) => {
     // save the user to the database
     const savedUser = await newUser.save();
 
+    /* real
     //send email verificattion link
     const transporter = nodemailer.createTransport(
       {
-        service: 'gmail',
+        host: 'smtp-mail.outlook.com',
+        port: 587,
+        secure: false, // true for 465, false for other ports
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS,
-        
         },
       }
-    )
+    )*/
+    //testing
+      const transporter = nodemailer.createTransport({
+        host: 'smtp.mailtrap.io',
+        port: 587,
+        auth: {
+          user: process.env.MAILTRAP_USER,
+          pass: process.env.MAILTRAP_PASS,
+        },
+      });
 
-    const mailOption = {
+    const mailOptions = {
       from:process.env.EMAIL_USER,
       to:email,
       subject: 'Email Verification',
-      html: `<a href="http://yourapp.com/verify-email?token=${verificationToken}">here</a> to verify your email.</p>`,
+      html: `<p>Click <a href="http://localhost:3000/verify-email?token=${verificationToken}">here</a> to verify your email.</p>`,
     }
 
     await transporter.sendMail(mailOptions);
