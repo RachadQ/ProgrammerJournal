@@ -4,33 +4,20 @@ import axios from "axios";
 
 const EmailVerification: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
+  const status  = searchParams.get("status");
   const [verificationStatus, setVerificationStatus] = useState<
     "loading" | "success" | "error"
   >("loading");
 
   useEffect(() => {
-    if (!token) {
+    if (status === "success") {
+      setVerificationStatus("success");
+    } else if (status === "error") {
       setVerificationStatus("error");
-      return;
+    } else {
+      setVerificationStatus("loading");
     }
-
-    const verifyEmail = async () => {
-      try {
-        const response = await axios.get(`/verify-email?token=${token}`);
-        if (response.status === 200) {
-          setVerificationStatus("success");
-        } else {
-          setVerificationStatus("error");
-        }
-      } catch (error) {
-        console.error("Verification error:", error);
-        setVerificationStatus("error");
-      }
-    };
-
-    verifyEmail();
-  }, [token]);
+  }, [status]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

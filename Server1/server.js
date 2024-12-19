@@ -266,6 +266,11 @@ router.get('/verify-email', async(req,res) =>
  
   const {token} = req.query;
   console.log(token);
+
+  if (!token) {
+    return res.status(400).json({ message: 'Token is missing' });
+  }
+  
   try{
     //find user by verification token
     const user = await User.findOne({verificationToken: token}).select('+verificationToken');
@@ -279,11 +284,14 @@ router.get('/verify-email', async(req,res) =>
     user.verificationToken = undefined; //clear the token
     await user.save();
     
+    // Redirect to the front-end email verification success page
+    res.redirect('http://localhost:3000/verify-email?status=success');
   }
   catch(err)
   {
     console.error(error)
-    res.status(500).json({message: 'Error verifying email.', error: error.message})
+     // Redirect to an error page or send an error message
+     res.redirect('/verify-email?status=error&message=' + encodeURIComponent(error.message));
   }
 }
 )
