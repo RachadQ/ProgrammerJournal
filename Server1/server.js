@@ -121,7 +121,7 @@ router.put('/profile/:username',authenticateToken,async(req,res)=>
 )
 
 //create a new journal entry
-router.get('/entries', authenticateToken, async (req, res) => {
+router.post('/entries', authenticateToken, async (req, res) => {
  
   try{
   //Get route to retrieve use and their entries
@@ -296,6 +296,20 @@ router.get('/verify-email', async(req,res) =>
 }
 )
 
+// Verify token route
+router.post('/verify-token', async (req, res) => {
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, JWT_SECRET);
+
+    // Assuming you want to return the redirect URL
+    const redirectUrl = decodedToken.redirectUrl;
+    res.status(200).json({ redirectUrl });
+  } catch (err) {
+    res.status(401).json({ message: 'Invalid token' });
+  }
+});
+
 //get user by username
 router.get('/user/:username', authenticateToken, async (req,res) =>{
 
@@ -367,7 +381,7 @@ router.post('/login',async (req,res) =>
     }
 
     //generate JWT token
-    const token = jwt.sign({id: user._id,username: user.username},JWT_SECRET,
+    const token = jwt.sign({id: user._id,username: user.username,redirectUrl: `/user/${user.username}`},JWT_SECRET,
       {
         expiresIn: '1h'
       }
@@ -377,6 +391,7 @@ router.post('/login',async (req,res) =>
         return res.status(200).json({
           message: 'Login successful',
           token, // Send the token to the client
+          
         });
 
      // Respond with the user info and token
@@ -393,6 +408,7 @@ router.post('/login',async (req,res) =>
         updatedAt: user.updatedAt,
       },
       token, // Send the JWT token to the client
+      
     });
   }
   catch(err)

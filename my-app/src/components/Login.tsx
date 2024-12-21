@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // For redirecting after successful login
 
+
+
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,11 +22,22 @@ const LoginPage: React.FC = () => {
       
       // Handle successful login
       const { token } = response.data;
-      // Store the token in localStorage (or sessionStorage)
-      localStorage.setItem('authToken', token);
 
-      // Redirect the user to the home page or any other page after successful login
-      navigate('/');
+       // Verify the token using Axios
+       const verifyTokenResponse = await axios.post('http://localhost:3001/verify-token', null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (verifyTokenResponse.status === 200) {
+        // Store the token in localStorage (or sessionStorage)
+        localStorage.setItem('authToken', token);
+
+        // Redirect the user to the URL specified in the token
+        // Assuming the redirect URL is returned in the verifyTokenResponse
+        const redirectUrl = verifyTokenResponse.data.redirectUrl;
+        navigate(redirectUrl);
+      } else {
+        throw new Error('Invalid token');
+      }
     } catch (error: any) {
       // Handle errors (e.g., invalid credentials)
       setError(error.response?.data?.message || 'An error occurred');
