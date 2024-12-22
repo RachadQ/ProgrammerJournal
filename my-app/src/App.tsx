@@ -21,7 +21,7 @@ function App() {
         <Routes>
           {/*<UserProfile profile={profileData} />*/}
           <Route path="/"  element={<HomePage/>} />
-          <Route path="/profile/:username" element={<UserProfile/>} />
+          <Route path="/user/:username" element={<UserProfile/>} />
           {/* New route for login page */}
           <Route path="/login" element={<LoginPage />} />
            {/* New route for SignUp page */}

@@ -73,7 +73,7 @@ const authenticateToken = (req,res,next) =>
   })
 }
 
-//RUpdate profile route
+//Update profile route
 router.put('/profile/:username',authenticateToken,async(req,res)=>
 {
   try{
@@ -313,6 +313,7 @@ router.post('/verify-token', async (req, res) => {
 //get user by username
 router.get('/user/:username', authenticateToken, async (req,res) =>{
 
+  console.log("Reach");
   const {username} = req.params;
 
   try {
