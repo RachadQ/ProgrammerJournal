@@ -126,7 +126,7 @@ router.post('/entries', authenticateToken, async (req, res) => {
   try{
   //Get route to retrieve use and their entries
   const { title, content, tags } = req.body; //for later
-
+    const author = req.user._id;
   if(!title || !content || !tags){
     return res.status(400).json({ message: 'Title, content, and tags are required' });
   }
