@@ -6,6 +6,8 @@ import { profile } from "console";
 import JournalEntry from './journalEntry';
 import { useParams } from 'react-router-dom';
 import { ProfileWithEntriesResponse } from '../types';
+import { JournalEntryProp } from "../interface/JournalEntryProp";
+
 import '../styles/profile.css'
 interface userProfile{
     profile: {
@@ -86,6 +88,10 @@ const UserProfile: React.FC = () => {
     return <div className="p-6 text-red-500">{error}</div>;
   }
 
+  const handleAddEntry = (newEntry: JournalEntryProp) => {
+    setEntries((prevEntries) => [...prevEntries, newEntry]);
+  };
+  
   if (!profile) {
     return <div className="p-6">Loading...</div>;
   }
@@ -127,6 +133,9 @@ const UserProfile: React.FC = () => {
        {/* Journal Entries */}
        <section>
           <h2 className="text-xl font-semibold mt-4 text-left mx-auto max-w-xl mb-5">Journal Entries:</h2>
+          <NewJournalEntryForm addEntry={function (newEntry: JournalEntryProp): void {
+          throw new Error("Function not implemented.");
+        } } /> {/* --- Added the NewJournalEntryForm component here */}
           <div className="space-y-4">
             {fakeEntries.map((entry) => (
               <div key={entry.id} className="journal-post bg-white rounded-lg shadow-md p-8 md:p-12 mb-8 mx-auto max-w-xl">
@@ -153,3 +162,7 @@ const UserProfile: React.FC = () => {
 };
 
 export default UserProfile;
+
+function setEntries(arg0: (prevEntries: any) => any[]) {
+  throw new Error("Function not implemented.");
+}
