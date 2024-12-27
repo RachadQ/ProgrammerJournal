@@ -441,7 +441,7 @@ router.post('/logout',(req,res) => {
   {
     return res.status(500).json({
       message: 'An error occurred during logout.',
-      error: err.message
+      error: err.message});
   }
 
 })
