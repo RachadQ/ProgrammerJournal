@@ -138,6 +138,9 @@ router.post('/entries', authenticateToken, async (req, res) => {
     user:userId,
   });
 
+  //make the post request
+  fetch
+
     // Save the new entry to the database
     await newEntry.save();
 
@@ -418,6 +421,30 @@ router.post('/login',async (req,res) =>
   }
 }
 )
+
+//logout route
+router.post('/logout',(req,res) => {
+
+  try{
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+
+    if(!token)
+    {
+      return res.status(400).json({ message: 'No token provided. Please log in first.' });
+    }
+      // Invalidate the token on the client side (tokens are stateless, so server-side invalidation is not possible)
+      return res.status(200).json({
+        message: 'Logout successful. Token is no longer valid. Please remove it from your client storage.'
+    });
+  }
+  catch(err)
+  {
+    return res.status(500).json({
+      message: 'An error occurred during logout.',
+      error: err.message
+  }
+
+})
 app.use(router)
 
 
