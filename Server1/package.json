@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.16",
     "uuid": "^11.0.3"

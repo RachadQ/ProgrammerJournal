@@ -18,75 +18,71 @@ const LoginPage: React.FC = () => {
       const response = await axios.post('http://localhost:3001/login', {
         email,
         password,
-      });
-      
-      // Handle successful login
-      const { token } = response.data;
-
-       // Verify the token using Axios
-       const verifyTokenResponse = await axios.post('http://localhost:3001/verify-token', null, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (verifyTokenResponse.status === 200) {
-        // Store the token in localStorage (or sessionStorage)
-        localStorage.setItem('authToken', token);
-
-        // Redirect the user to the URL specified in the token
-        // Assuming the redirect URL is returned in the verifyTokenResponse
-        const redirectUrl = verifyTokenResponse.data.redirectUrl;
-        navigate(redirectUrl);
-      } else {
-        throw new Error('Invalid token');
+      },{
+        withCredentials: true, 
       }
-    } catch (error: any) {
-      // Handle errors (e.g., invalid credentials)
-      setError(error.response?.data?.message || 'An error occurred');
-    }
-  };
-
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+    );
+      
+         // Handle successful login
+         if (response.status === 200) {
+          console.log('Response Data:', response.data); // Debugging
+          // Redirect the user to the URL specified in the response (if any)
+          const redirectUrl = response.data.redirectUrl || '/';  // Default to home if no redirect is provided
+          console.log('Redirecting to:', redirectUrl);
         
-        {/* Show error message if login fails */}
-        {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-
-        <form onSubmit={handleLogin}>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-semibold">Email</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded mt-2"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-semibold">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded mt-2"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded mt-4"
-          >
-            Login
-          </button>
-        </form>
+          navigate(redirectUrl);
+        } else {
+          throw new Error('Login failed');
+        }
+      } catch (error: any) {
+        // Handle errors (e.g., invalid credentials)
+        setError(error.response?.data?.message || 'An error occurred');
+      }
+    };
+  
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-lg w-96">
+          <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+  
+          {/* Show error message if login fails */}
+          {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+  
+          <form onSubmit={handleLogin}>
+            <div className="mb-4">
+              <label htmlFor="email" className="block text-sm font-semibold">Email</label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded mt-2"
+                required
+              />
+            </div>
+  
+            <div className="mb-4">
+              <label htmlFor="password" className="block text-sm font-semibold">Password</label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded mt-2"
+                required
+              />
+            </div>
+  
+            <button
+              type="submit"
+              className="w-full bg-blue-500 text-white py-2 rounded mt-4"
+            >
+              Login
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
-  );
-};
-
-export default LoginPage;
+    );
+  };
+  
+  export default LoginPage;

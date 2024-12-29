@@ -8,6 +8,7 @@ const nodemailer = require('nodemailer');
 const router = new express.Router()
 // ADD THIS
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const usersController = require("./controller/users")
 // get config
@@ -28,7 +29,11 @@ app.use(bodyParser.urlencoded({extended:true}));
 // Custom CORS middleware
 app.use(cors({
   origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  credentials: true,
 }));
+
+app.use(cookieParser());
 
 //models
 const Entry = require(__basedir + '/models/entry');
@@ -54,23 +59,43 @@ function generateUniqueId() {
 //JWT Authentication Middleware
 const authenticateToken = (req,res,next) =>
 {
-   // Skip token validation in test environment
-   if (process.env.NODE_ENV === 'test') {
-    return next(); // Skip authentication for testing
+  try {
+    // Skip token validation in test environment (optional)
+    /*
+    if (process.env.NODE_ENV === 'test') {
+      return next(); // Skip authentication for testing
+    }
+    */
+
+    // Use cookies or Authorization header for token
+    const token = req.cookies.authToken || req.header('Authorization')?.split(' ')[1];
+
+    // If no token is provided, send a 401 error
+    if (!token) {
+      return res.status(401).json({ message: 'Token is required' });
+    }
+
+    // Verify the JWT token
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+      if (err) {
+        // If the token has expired, return a specific error message
+        if (err.name === 'TokenExpiredError') {
+          return res.status(401).json({ message: 'Token has expired' });
+        }
+
+        // Handle any other JWT errors (e.g., invalid token)
+        return res.status(403).json({ message: 'Invalid or expired token' });
+      }
+
+      // If the token is valid, attach the user info to the request object
+      req.user = user;
+      next(); // Proceed to the next middleware
+    });
+  } catch (error) {
+    // Catch any other unexpected errors and return a 500 server error
+    console.error('Authentication error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
-
-  const authHeaderTest = req.headers['authorization']; 
- // const authHeader = req.headers.authenticateToken;
-  const token = authHeaderTest && authHeaderTest.split(' ')[1];
-
-  if(!token) return res.status(401).json({message: 'Token is required'});
-
-  jwt.verify(token.JWT_SECRET,(err,user) =>{
-  //  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if(err) return res.status(403).json({message: 'Invalid or expired token'});
-    req.user = user;
-    next();
-  })
 }
 
 //Update profile route
@@ -88,7 +113,7 @@ router.put('/profile/:username',authenticateToken,async(req,res)=>
         return res.status(403).json({ message: 'You can only edit your own profile' });
       }
 
-      const updatedUser = await findOneAndUpdate(
+      const updatedUser = await User.findOneAndUpdate(
         { username: usernameParam }, 
         updates, 
         { new: true }
@@ -135,17 +160,18 @@ router.post('/entries', authenticateToken, async (req, res) => {
     title,
     content,
     tags,
-    user:userId,
+    user:author,
   });
 
-  //make the post request
-  fetch
+
 
     // Save the new entry to the database
     await newEntry.save();
 
       // Respond with a success message or the newly created entry
-      res.status(201).json({ message: 'Journal entry created successfully', entry: newEntry });
+      res.status(201).json({ 
+        message: 'Journal entry created successfully', 
+        entry: newEntry });
     } catch (error) {
       // Handle any errors that occur during the creation process
       res.status(500).json({ message: 'Failed to create journal entry', error: error.message });
@@ -167,6 +193,7 @@ router.post('/user/signUp', async(req,res) => {
      // Check if passwords match (but don't store confirmPassword in the model)
      if (password !== confirmPassword) {
       return res.status(400).json({ message: 'Passwords do not match.' });
+      on({ message: 'Passwords do not match.' });
     }
 
     //Validate email format
@@ -302,8 +329,14 @@ router.get('/verify-email', async(req,res) =>
 // Verify token route
 router.post('/verify-token', async (req, res) => {
   try {
-    const token = req.headers.authorization.split(' ')[1];
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Authorization header missing or malformed' });
+    }
+
+    const token = authHeader.split(' ')[1];
     const decodedToken = jwt.verify(token, JWT_SECRET);
+    
 
     // Assuming you want to return the redirect URL
     const redirectUrl = decodedToken.redirectUrl;
@@ -384,19 +417,35 @@ router.post('/login',async (req,res) =>
       return res.status(400).json({message: 'Invalid credentials'})
     }
 
-    //generate JWT token
-    const token = jwt.sign({id: user._id,username: user.username,redirectUrl: `/user/${user.username}`},JWT_SECRET,
-      {
-        expiresIn: '1h'
-      }
+    // Generate JWT token with redirectUrl in the payload
+  const redirectUrl = `/user/${user.username}`;
+  if (!redirectUrl) {
+    throw new Error('redirectUrl is not defined');  // Custom error to catch this case
+  }
+  //generate jwt token
+  const token = jwt.sign(
+    { id: user._id, username: user.username, redirectUrl },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+
+
+    // Set the userId in a cookie with HttpOnly and Secure flags
+    res.cookie(
+      'authToken', token, {
+      httpOnly: true,  // Prevents JavaScript access to the cookie
+      secure: process.env.NODE_ENV === 'production', // Only set Secure flag in production
+      maxAge: 3600000, // Cookie expiration time (1 hour in milliseconds)
+      sameSite: 'Strict', // Helps prevent CSRF attacks
+    }
     );
 
-        // Send the token in the response
+       /* // Send the token in the response
         return res.status(200).json({
           message: 'Login successful',
           token, // Send the token to the client
           
-        });
+        });*/
 
      // Respond with the user info and token
      res.status(200).json({
@@ -412,7 +461,7 @@ router.post('/login',async (req,res) =>
         updatedAt: user.updatedAt,
       },
       token, // Send the JWT token to the client
-      
+      redirectUrl,
     });
   }
   catch(err)
@@ -421,30 +470,18 @@ router.post('/login',async (req,res) =>
   }
 }
 )
+// Sign out route
+router.post('/logout', authenticateToken, (req, res) => {
+  try {
+    // Clear the authToken cookie
+    res.clearCookie('authToken', { httpOnly: true, secure: true });
 
-//logout route
-router.post('/logout',(req,res) => {
-
-  try{
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-
-    if(!token)
-    {
-      return res.status(400).json({ message: 'No token provided. Please log in first.' });
-    }
-      // Invalidate the token on the client side (tokens are stateless, so server-side invalidation is not possible)
-      return res.status(200).json({
-        message: 'Logout successful. Token is no longer valid. Please remove it from your client storage.'
-    });
+    // Respond with success message
+    res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to log out', error: error.message });
   }
-  catch(err)
-  {
-    return res.status(500).json({
-      message: 'An error occurred during logout.',
-      error: err.message});
-  }
-
-})
+});
 app.use(router)
 
 

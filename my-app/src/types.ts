@@ -12,6 +12,7 @@ export interface Entry {
 
 
   export interface ProfileWithEntriesResponse {
+    entries: any;
     username: string;
     firstName: string;
     lastName: string;
