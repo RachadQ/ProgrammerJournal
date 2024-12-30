@@ -434,12 +434,14 @@ router.post('/login',async (req,res) =>
     res.cookie(
       'authToken', token, {
       httpOnly: true,  // Prevents JavaScript access to the cookie
-      secure: process.env.NODE_ENV === 'production', // Only set Secure flag in production
+      secure: false, //, // Only set Secure flag in production
       maxAge: 3600000, // Cookie expiration time (1 hour in milliseconds)
-      sameSite: 'Strict', // Helps prevent CSRF attacks
+      sameSite: 'None', // Helps prevent CSRF attacks ... secure
+      path: '/',
     }
     );
 
+    
        /* // Send the token in the response
         return res.status(200).json({
           message: 'Login successful',

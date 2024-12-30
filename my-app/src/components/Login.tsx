@@ -23,13 +23,15 @@ const LoginPage: React.FC = () => {
       }
     );
       
-         // Handle successful login
-         if (response.status === 200) {
-          console.log('Response Data:', response.data); // Debugging
-          // Redirect the user to the URL specified in the response (if any)
-          const redirectUrl = response.data.redirectUrl || '/';  // Default to home if no redirect is provided
-          console.log('Redirecting to:', redirectUrl);
-        
+          // Handle successful login
+          if (response.status === 200) {
+            console.log('Response Headers:', response);
+  console.log('Cookies:', document.cookie);
+            console.log('Response Data:', response.data); // Debugging
+            // Redirect the user to the URL specified in the response (if any)
+            const redirectUrl = response.data.redirectUrl || '/';  // Default to home if no redirect is provided
+            console.log('Redirecting to:', redirectUrl);
+          
           navigate(redirectUrl);
         } else {
           throw new Error('Login failed');

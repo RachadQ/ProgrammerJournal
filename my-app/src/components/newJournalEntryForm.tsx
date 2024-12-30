@@ -26,8 +26,10 @@ interface NewJournalEntryFormProps {
   };
 
     useEffect(() => {
-       const storedToken = localStorage.getItem('authToken');
-      setToken(storedToken);
+      const storedToken = getCookie('authToken'); // Assuming `authToken` is stored in a cookie
+      if (storedToken) {
+        setToken(storedToken);
+      }
 
       // Get userId from cookies
       const storedUserId = getCookie('userId'); // Assuming userId is stored in a cookie
@@ -44,14 +46,16 @@ interface NewJournalEntryFormProps {
       }
       try {
         const tagNames = tags.map((tag) => tag.name).join(',').split(',').map(tag => tag.trim());
-        const tagIds = [];
-        for (const tagName of tagNames) {
-          const response = (await axios.post('http://localhost:3001/tags', { name: tagName })) as AxiosResponse<{ _id: string }>;
+    const tagIds: string[] = []; // Explicitly type as an array of strings
+
+    for (const tagName of tagNames) {
+          const response: AxiosResponse<{ _id: string }> = await axios.post(
+            'http://localhost:3001/tags',
+            { name: tagName }
+          );
+
           if (response.data) {
-            tagIds.push(response.data._id.toString());
-          } else {
-            const newTag = await axios.post('http://localhost:3001/tags', { name: tagName });
-            tagIds.push(newTag.data._id.toString());
+            tagIds.push(response.data._id); // TypeScript knows tagIds should hold strings
           }
         }
 
@@ -70,7 +74,7 @@ interface NewJournalEntryFormProps {
           id: response.data._id, // Assuming the response returns the new entry with _id
           title,
           content,
-          tags: tagIds,
+          tags: tags.map((tag) => ({ info: { id: tag.id, name: tag.name } })),  // Ensure tags conform to TagProp
           userId: userId as string,
           createdAt: new Date().toISOString(),  // Add createdAt
           updatedAt: new Date().toISOString()   // Add updatedAt
@@ -79,7 +83,7 @@ interface NewJournalEntryFormProps {
   
         setTitle('');
         setContent('');
-        setTags('');
+        setTags([]);
         setIsOpen(false);
       } catch (error) {
         console.error(error);
@@ -112,9 +116,12 @@ interface NewJournalEntryFormProps {
     };
 
     const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const tagNames = e.target.value.split(',').map(tag => tag.trim());
-      const tagObjects = tagNames.map(name => ({ name }));
-      setTags(tagObjects);
+        const tagNames = e.target.value.split(',').map((tag) => tag.trim());
+    const tagObjects = tagNames.map((name, index) => ({
+      id: `temp-${index}`, // Generate a temporary ID for each tag
+      name,
+    }));
+    setTags(tagObjects);
     };
   
     return (
