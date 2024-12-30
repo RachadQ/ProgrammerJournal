@@ -482,6 +482,26 @@ router.post('/logout', authenticateToken, (req, res) => {
     res.status(500).json({ message: 'Failed to log out', error: error.message });
   }
 });
+
+router.get('/tags/:name', async (req, res) => {
+  const tag = await Tag.findOne({ name: req.params.name });
+  if (tag) {
+    res.json(tag);
+  } else {
+    res.status(404).json({ message: 'Tag not found' });
+  }
+
+});
+router.post('/tags', async (req, res) => {
+  const tag = new Tag(req.body);
+  try {
+    await tag.save();
+    res.json(tag);
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating tag' });
+  }
+});
+
 app.use(router)
 
 

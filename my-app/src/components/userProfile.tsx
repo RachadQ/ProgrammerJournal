@@ -6,7 +6,7 @@ import { profile } from "console";
 import JournalEntry from './journalEntry';
 import { useParams } from 'react-router-dom';
 import { ProfileWithEntriesResponse } from '../types';
-import { JournalEntryProp } from "../interface/JournalEntryProp";
+import JournalEntryProp  from "../interface/JournalEntryProp";
 import Cookies from 'js-cookie';  // Import the js-cookie library
 
 import '../styles/profile.css'

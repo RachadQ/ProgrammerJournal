@@ -1,6 +1,7 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import React, { useState, useEffect } from 'react';
-import { JournalEntryProp } from '../interface/JournalEntryProp';
+import  JournalEntryProp  from '../interface/JournalEntryProp';
+import { TagProp } from '../interface/TagProp';
 interface NewJournalEntryFormProps {
   addEntry: (newEntry: JournalEntryProp) => void;
 }
@@ -9,7 +10,7 @@ interface NewJournalEntryFormProps {
   const NewJournalEntryForm: React.FC<NewJournalEntryFormProps> = ({ addEntry }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [tags, setTags] = useState('');
+    const [tags, setTags] = useState<TagProp[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [token, setToken] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
@@ -42,15 +43,23 @@ interface NewJournalEntryFormProps {
         return;
       }
       try {
-        const tagObjects = tags.split(',').map(tag => ({
-          info: { name: tag.trim() } // Create the tag object in the correct format
-        }));
+        const tagNames = tags.map((tag) => tag.name).join(',').split(',').map(tag => tag.trim());
+        const tagIds = [];
+        for (const tagName of tagNames) {
+          const response = (await axios.post('http://localhost:3001/tags', { name: tagName })) as AxiosResponse<{ _id: string }>;
+          if (response.data) {
+            tagIds.push(response.data._id.toString());
+          } else {
+            const newTag = await axios.post('http://localhost:3001/tags', { name: tagName });
+            tagIds.push(newTag.data._id.toString());
+          }
+        }
 
         const response = await axios.post(
           'http://localhost:3001/entries',
           { title,
              content,
-              tags: tagObjects ,
+              tags: tagIds ,
               userId: userId
             },
           { headers: { Authorization: `Bearer ${token}` } }
@@ -61,7 +70,7 @@ interface NewJournalEntryFormProps {
           id: response.data._id, // Assuming the response returns the new entry with _id
           title,
           content,
-          tags: tagObjects,
+          tags: tagIds,
           userId: userId as string,
           createdAt: new Date().toISOString(),  // Add createdAt
           updatedAt: new Date().toISOString()   // Add updatedAt
@@ -101,6 +110,12 @@ interface NewJournalEntryFormProps {
     const handleOpen = () => {
       setIsOpen(true);
     };
+
+    const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const tagNames = e.target.value.split(',').map(tag => tag.trim());
+      const tagObjects = tagNames.map(name => ({ name }));
+      setTags(tagObjects);
+    };
   
     return (
       <div className="relative flex justify-center items-center min-h-[10vh] bg-gray-100">
@@ -136,8 +151,8 @@ interface NewJournalEntryFormProps {
                   <label className="text-sm font-semibold">Tags (comma-separated):</label>
                   <input
                     type="text"
-                    value={tags}
-                    onChange={(e) => setTags(e.target.value)}
+                    value={tags.map(tag => tag.name).join(', ')}
+                    onChange={handleTagChange}
                     className="w-full p-2 border border-gray-300 rounded-lg"
                   />
                 </div>
