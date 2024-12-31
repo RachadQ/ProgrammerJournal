@@ -1,69 +1,31 @@
-import React,{useEffect,useState} from "react";
-import axios from 'axios'
-import JournalEntryList  from "./journalEntryList";
+import React, { useEffect, useState } from "react";
+import axios from 'axios';
+import JournalEntryList from "./journalEntryList";
 import NewJournalEntryForm from "./newJournalEntryForm";
-import { profile } from "console";
-import JournalEntry from './journalEntry';
 import { useParams } from 'react-router-dom';
 import { ProfileWithEntriesResponse } from '../types';
-import JournalEntryProp  from "../interface/JournalEntryProp";
+import JournalEntryProp from "../interface/JournalEntryProp";
 import Cookies from 'js-cookie';  // Import the js-cookie library
+import '../styles/profile.css';
 
-import '../styles/profile.css'
-interface userProfile{
-    profile: {
+interface userProfile {
+  profile: {
     name: string;
     title: string;
     id: number;
-};
-entries: JournalEntryProp[]; 
+  };
+  entries: JournalEntryProp[];
 }
+
 const TagComponent = ({ info }: { info: { id: string; name: string } }) => (
   <span className="bg-gray-300 text-gray-800 px-4 py-2 rounded-full">{info.name}</span>
 );
 
-
-  // Fake journal entries data
-  const fakeEntries = [
-    {
-      id: "1",
-      title: "My First Journal Entry",
-      content: "This is the content of my first journal entry. I'm excited to start journaling!",
-      createdAt: "2024-12-10T12:30:00.000Z",
-      tags: [
-        { info: { id: "tag1", name: "Personal" } },
-        { info: { id: "tag2", name: "Exciting" } },
-      ],
-    },
-    {
-      id: "2",
-      title: "A New Beginning",
-      content: "Today marks a new chapter in my life. I'm focusing on personal growth and learning.",
-      createdAt: "2024-12-11T14:45:00.000Z",
-      tags: [
-        { info: { id: "tag3", name: "Growth" } },
-        { info: { id: "tag4", name: "Motivation" } },
-      ],
-    },
-    {
-      id: "3",
-      title: "Challenges Ahead",
-      content: "I'm starting to face some challenges at work. I'm determined to overcome them.",
-      createdAt: "2024-12-12T09:00:00.000Z",
-      tags: [
-        { info: { id: "tag5", name: "Work" } },
-        { info: { id: "tag6", name: "Challenges" } },
-      ],
-    },
-  ];
-
 const UserProfile: React.FC = () => {
-    
-  const {username} = useParams<{username: string}>();
-  const [profile,setProfile] = useState<ProfileWithEntriesResponse | null>(null);
-  const [error,setError] =  useState<string | null>();
-  const [entries, setEntries] = useState<JournalEntryProp[]>([]);  // Add state for journal entries
-    
+  const { username } = useParams<{ username: string }>();
+  const [profile, setProfile] = useState<ProfileWithEntriesResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [entries, setEntries] = useState<JournalEntryProp[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -73,15 +35,17 @@ const UserProfile: React.FC = () => {
           setError('No token found');
           return;
         }
-
-        const response = await axios.get<ProfileWithEntriesResponse>(`http://localhost:3001/user/${username}`,
-        {
+        console.log('AuthToken:', token); // Log the token for debugging
+        const refreshToken = Cookies.get('refreshToken'); // You can also check for refreshToken if needed
+        console.log('RefreshToken:', refreshToken);
+        const response = await axios.get<ProfileWithEntriesResponse>(`http://localhost:3001/user/${username}`, {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
         });
         setProfile(response.data);
-        setEntries(response.data.entries); 
+        setEntries(response.data.entries);
         setError(null);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to load profile.');
@@ -100,17 +64,16 @@ const UserProfile: React.FC = () => {
   const handleAddEntry = (newEntry: JournalEntryProp) => {
     setEntries((prevEntries) => [...prevEntries, newEntry]);
   };
-  
-  if (!profile) {
-    return <div className="p-6">Loading profile...</div>;
-  }
-  
- 
+
   const downloadResume = async () => {
     const googleDriveLink = "https://drive.google.com/uc?export=download&id=1UsBGAJXyWdA9WQxzJeGj85fsSDKZFEVI";
     window.location.href = googleDriveLink;
   };
- 
+
+  if (!profile) {
+    return <div className="p-6">Loading profile...</div>;
+  }
+
   return (
     <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-4">
       <section className="py-6 md:py-2">
@@ -125,7 +88,7 @@ const UserProfile: React.FC = () => {
           <div className="text-center">
             <div className="flex justify-center mb-2 md:mb-2">
               <img
-                src={`https://www.bing.com/th?id=OIP.42gCaIWoZnhhRiZ7BzQXjQHaHa&w=174&h=185&c=8&rs=1&qlt=90&o=6&dpr=1.3&pid=3.1&rm=2`} // Replace with real profile picture if needed
+                src={`https://www.bing.com/th?id=OIP.42gCaIWoZnhhRiZ7BzQXjQHaHa&w=174&h=185&c=8&rs=1&qlt=90&o=6&dpr=1.3&pid=3.1&rm=2`} 
                 alt="Profile Picture"
                 className="w-32 h-32 md:w-48 md:h-48 rounded-full"
               />
@@ -151,7 +114,7 @@ const UserProfile: React.FC = () => {
                 <p className="text-lg md:text-xl text-gray-700 text-center">{entry.content}</p>
               </div>
               <div className="entry-tags flex flex-wrap mt-4 md:mt-6 justify-center" style={{ columnGap: "20px" }}>
-              {entry.tags.map((tag) => (
+                {entry.tags.map((tag) => (
                   <div key={tag.info.id} className="mr-2 mb-2">
                     <TagComponent info={tag.info} /> {/* Render the tag */}
                   </div>
@@ -166,7 +129,3 @@ const UserProfile: React.FC = () => {
 };
 
 export default UserProfile;
-
-function setEntries(arg0: (prevEntries: any) => any[]) {
-  throw new Error("Function not implemented.");
-}

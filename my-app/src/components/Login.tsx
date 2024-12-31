@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // For redirecting after successful login
-
+import Cookies from 'js-cookie';
 
 
 const LoginPage: React.FC = () => {
@@ -21,12 +21,17 @@ const LoginPage: React.FC = () => {
       },{
         withCredentials: true, 
       }
+
+      
     );
+    console.log("Request headers:", response.config.headers);
       
           // Handle successful login
           if (response.status === 200) {
+            Cookies.set('authToken', response.data.token, { expires: 1 }); // Save the accessToken (e.g., valid for 1 day)
+            Cookies.set('refreshToken', response.data.refreshToken, { expires: 7 }); // Save the refreshToken (e.g., valid for 7 days)
             console.log('Response Headers:', response);
-  console.log('Cookies:', document.cookie);
+            console.log('Cookies:', document.cookie);
             console.log('Response Data:', response.data); // Debugging
             // Redirect the user to the URL specified in the response (if any)
             const redirectUrl = response.data.redirectUrl || '/';  // Default to home if no redirect is provided
@@ -39,6 +44,11 @@ const LoginPage: React.FC = () => {
       } catch (error: any) {
         // Handle errors (e.g., invalid credentials)
         setError(error.response?.data?.message || 'An error occurred');
+        console.error("Login error:", error);
+  console.error("Error response:", error.response);
+  console.error("Error response headers:", error.response?.headers);
+  console.error("Error response data:", error.response?.data);
+  setError(error.response?.data?.message || 'An error occurred');
       }
     };
   

@@ -68,7 +68,7 @@ const authenticateToken = (req,res,next) =>
     */
 
     // Use cookies or Authorization header for token
-    const token = req.cookies.authToken || req.header('Authorization')?.split(' ')[1];
+    const token = req.cookies?.authToken || req.header('Authorization')?.split(' ')[1];
 
     // If no token is provided, send a 401 error
     if (!token) {
@@ -426,7 +426,14 @@ router.post('/login',async (req,res) =>
   const token = jwt.sign(
     { id: user._id, username: user.username, redirectUrl },
     JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: '1d' }
+  );
+
+
+  const refreshToken = jwt.sign(
+    { id: user._id, username: user.username },
+    JWT_SECRET,
+    { expiresIn: '7d' }  // You can set a longer expiration for refresh tokens
   );
 
 
@@ -434,12 +441,16 @@ router.post('/login',async (req,res) =>
     res.cookie(
       'authToken', token, {
       httpOnly: true,  // Prevents JavaScript access to the cookie
-      secure: false, //, // Only set Secure flag in production
+      secure: false, //, // Only set Secure flag in production... false for testing
       maxAge: 3600000, // Cookie expiration time (1 hour in milliseconds)
-      sameSite: 'None', // Helps prevent CSRF attacks ... secure
+      sameSite: 'none', // Helps prevent CSRF attacks ... secure
+      domain: 'localhost', 
       path: '/',
     }
     );
+   
+    
+    
 
     
        /* // Send the token in the response
@@ -463,6 +474,7 @@ router.post('/login',async (req,res) =>
         updatedAt: user.updatedAt,
       },
       token, // Send the JWT token to the client
+      refreshToken,
       redirectUrl,
     });
   }
@@ -502,6 +514,32 @@ router.post('/tags', async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error creating tag' });
   }
+});
+
+// Add this route to handle token refresh
+router.post('/refresh-token', async (req, res) => {
+  const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'Refresh token is required' });
+  }
+
+  // Verify refresh token (you could store refresh tokens in the database for better security)
+  jwt.verify(refreshToken, JWT_SECRET, async (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid or expired refresh token' });
+    }
+
+    // Issue a new access token (and possibly a new refresh token)
+    const newAccessToken = jwt.sign(
+      { id: user._id, username: user.username },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    // Send the new access token to the client
+    res.status(200).json({ accessToken: newAccessToken });
+  });
 });
 
 app.use(router)
