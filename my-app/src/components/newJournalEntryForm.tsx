@@ -31,9 +31,14 @@ interface NewJournalEntryFormProps {
         setToken(storedToken);
       }
 
-      // Get userId from cookies
-      const storedUserId = getCookie('userId'); // Assuming userId is stored in a cookie
-     setUserId(storedUserId);
+      // Decode the JWT token to extract the userId
+    try {
+      const decodedToken: any = jwt_decode(storedToken); // Assuming your JWT contains user information
+      const userId = decodedToken.userId;  // Ensure this matches the payload structure of your JWT
+      setUserId(userId);
+    } catch (error) {
+      console.error("Error decoding token:", error);
+    }
     }, []);
     
 
@@ -74,7 +79,7 @@ interface NewJournalEntryFormProps {
           id: response.data._id, // Assuming the response returns the new entry with _id
           title,
           content,
-          tags: tags.map((tag) => ({ info: { id: tag.id, name: tag.name } })),  // Ensure tags conform to TagProp
+          tags: tags.map((tag) => ({ info: { name: tag.name } })),  // Ensure tags conform to TagProp
           userId: userId as string,
           createdAt: new Date().toISOString(),  // Add createdAt
           updatedAt: new Date().toISOString()   // Add updatedAt
@@ -115,14 +120,14 @@ interface NewJournalEntryFormProps {
       setIsOpen(true);
     };
 
-    const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const tagNames = e.target.value.split(',').map((tag) => tag.trim());
+     const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const tagNames = e.target.value.split(',').map((tag) => tag.trim());
     const tagObjects = tagNames.map((name, index) => ({
       id: `temp-${index}`, // Generate a temporary ID for each tag
       name,
     }));
     setTags(tagObjects);
-    };
+  };
   
     return (
       <div className="relative flex justify-center items-center min-h-[10vh] bg-gray-100">
@@ -186,3 +191,7 @@ interface NewJournalEntryFormProps {
   
   export default NewJournalEntryForm;
   export{};
+
+function jwt_decode(storedToken: string | null): any {
+  throw new Error('Function not implemented.');
+}

@@ -82,7 +82,7 @@ const authenticateToken = (req,res,next) =>
         if (err.name === 'TokenExpiredError') {
           return res.status(401).json({ message: 'Token has expired' });
         }
-
+        req.user = user;
         // Handle any other JWT errors (e.g., invalid token)
         return res.status(403).json({ message: 'Invalid or expired token' });
       }

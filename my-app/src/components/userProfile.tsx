@@ -105,7 +105,7 @@ const UserProfile: React.FC = () => {
         <h2 className="text-xl font-semibold mt-4 text-left mx-auto max-w-xl mb-5">Journal Entries:</h2>
         <NewJournalEntryForm addEntry={handleAddEntry} />  {/* Pass the handleAddEntry function here */}
         <div className="space-y-4">
-          {entries.map((entry) => (
+        {/*  {entries.map((entry) => (
             <div key={entry.id} className="journal-post bg-white rounded-lg shadow-md p-8 md:p-12 mb-8 mx-auto max-w-xl">
               <div className="entry-title">
                 <h3 className="text-xl md:text-2xl font-semibold text-center">{entry.title}</h3>
@@ -114,14 +114,16 @@ const UserProfile: React.FC = () => {
                 <p className="text-lg md:text-xl text-gray-700 text-center">{entry.content}</p>
               </div>
               <div className="entry-tags flex flex-wrap mt-4 md:mt-6 justify-center" style={{ columnGap: "20px" }}>
-                {entry.tags.map((tag) => (
+                {entry.tags?.map((tag) => (
                   <div key={tag.info.id} className="mr-2 mb-2">
-                    <TagComponent info={tag.info} /> {/* Render the tag */}
+                    <TagComponent info={tag.info} /> 
                   </div>
                 ))}
+
+
               </div>
             </div>
-          ))}
+          ))}*/}
         </div>
       </section>
     </div>
