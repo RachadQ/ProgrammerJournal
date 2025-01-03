@@ -7,6 +7,7 @@ import { ProfileWithEntriesResponse } from '../types';
 import JournalEntryProp from "../interface/JournalEntryProp";
 import Cookies from 'js-cookie';  // Import the js-cookie library
 import '../styles/profile.css';
+import TagsList from "./TagsList";
 
 interface userProfile {
   profile: {
@@ -35,15 +36,17 @@ const UserProfile: React.FC = () => {
           setError('No token found');
           return;
         }
-        console.log('AuthToken:', token); // Log the token for debugging
+
         const refreshToken = Cookies.get('refreshToken'); // You can also check for refreshToken if needed
-        console.log('RefreshToken:', refreshToken);
+       
         const response = await axios.get<ProfileWithEntriesResponse>(`http://localhost:3001/user/${username}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
           withCredentials: true,
         });
+        console.log(response);
+        console.log(token);
         setProfile(response.data);
         setEntries(response.data.entries);
         setError(null);
@@ -105,7 +108,7 @@ const UserProfile: React.FC = () => {
         <h2 className="text-xl font-semibold mt-4 text-left mx-auto max-w-xl mb-5">Journal Entries:</h2>
         <NewJournalEntryForm addEntry={handleAddEntry} />  {/* Pass the handleAddEntry function here */}
         <div className="space-y-4">
-        {/*  {entries.map((entry) => (
+          {entries.map((entry) => (
             <div key={entry.id} className="journal-post bg-white rounded-lg shadow-md p-8 md:p-12 mb-8 mx-auto max-w-xl">
               <div className="entry-title">
                 <h3 className="text-xl md:text-2xl font-semibold text-center">{entry.title}</h3>
@@ -115,15 +118,15 @@ const UserProfile: React.FC = () => {
               </div>
               <div className="entry-tags flex flex-wrap mt-4 md:mt-6 justify-center" style={{ columnGap: "20px" }}>
                 {entry.tags?.map((tag) => (
-                  <div key={tag.info.id} className="mr-2 mb-2">
-                    <TagComponent info={tag.info} /> 
+                  <div key={tag.info.name} className="mr-2 mb-2">
+                    <TagsList tags={[{name: tag.info.name}]} /> 
                   </div>
                 ))}
 
 
               </div>
             </div>
-          ))}*/}
+          ))}
         </div>
       </section>
     </div>

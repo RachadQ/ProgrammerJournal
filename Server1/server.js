@@ -38,6 +38,7 @@ app.use(cookieParser());
 //models
 const Entry = require(__basedir + '/models/entry');
 const User = require(__basedir + '/models/user');
+const Tag = require(__basedir + '/models/tag');
 
 //generate a unique Username
 function generateUsername(firstName, lastName)
@@ -82,13 +83,14 @@ const authenticateToken = (req,res,next) =>
         if (err.name === 'TokenExpiredError') {
           return res.status(401).json({ message: 'Token has expired' });
         }
-        req.user = user;
+       
         // Handle any other JWT errors (e.g., invalid token)
         return res.status(403).json({ message: 'Invalid or expired token' });
       }
 
       // If the token is valid, attach the user info to the request object
       req.user = user;
+      console.log("user info: " + JSON.stringify(req.user, null, 2));
       next(); // Proceed to the next middleware
     });
   } catch (error) {
@@ -146,7 +148,7 @@ router.put('/profile/:username',authenticateToken,async(req,res)=>
 )
 
 //create a new journal entry
-router.post('/entries', authenticateToken, async (req, res) => {
+router.post('/entrie', authenticateToken, async (req, res) => {
  
   try{
   //Get route to retrieve use and their entries
@@ -363,6 +365,9 @@ router.get('/user/:username', authenticateToken, async (req,res) =>{
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Fetch the journal entries for this user by their ObjectId
+    const entries = await Entry.find({ user: user._id }).populate('tags').select('-user').exec();
+
     res.status(200).json({
       id: user.id,
       firstName: user.firstName,
@@ -370,7 +375,7 @@ router.get('/user/:username', authenticateToken, async (req,res) =>{
       email: user.email,
       profilePicture: user.profilePicture,
       username: user.username,
-      journalEntries: user.journalEntries,
+      journalEntries: entries,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
   });
@@ -381,6 +386,9 @@ router.get('/user/:username', authenticateToken, async (req,res) =>{
   }
 }
 );
+
+
+
 
 //login route
 router.post('/login',async (req,res) =>
@@ -506,13 +514,28 @@ router.get('/tags/:name', async (req, res) => {
   }
 
 });
-router.post('/tags', async (req, res) => {
-  const tag = new Tag(req.body);
+router.post('/tag', async (req, res) => {
+  console.log("Reach");
+  console.log("Reached tag creation route");
+
+  const { name } = req.body; // Assuming the tag's name is sent in the body
+
+  if (!name) {
+    return res.status(400).json({ message: 'Tag name is required' });
+  }
+
   try {
+    // Create a new tag
+    const tag = new Tag({ name });
+
+    // Save the tag to the database
     await tag.save();
-    res.json(tag);
+
+    // Respond with the newly created tag
+    res.status(201).json(tag);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating tag' });
+    console.error("Error creating tag:", error);
+    res.status(500).json({ message: 'Error creating tag', error: error.message });
   }
 });
 

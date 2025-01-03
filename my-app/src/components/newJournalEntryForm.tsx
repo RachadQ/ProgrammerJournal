@@ -25,26 +25,50 @@ interface NewJournalEntryFormProps {
     return null;
   };
 
-    useEffect(() => {
-      const storedToken = getCookie('authToken'); // Assuming `authToken` is stored in a cookie
-      if (storedToken) {
-        setToken(storedToken);
-      }
-
-      // Decode the JWT token to extract the userId
-    try {
-      const decodedToken: any = jwt_decode(storedToken); // Assuming your JWT contains user information
-      const userId = decodedToken.userId;  // Ensure this matches the payload structure of your JWT
-      setUserId(userId);
-    } catch (error) {
-      console.error("Error decoding token:", error);
-    }
-    }, []);
+  
+  useEffect(() => {
     
+    const storedToken = getCookie('authToken'); // Get the token from cookies
+   
+    if (storedToken) {
+      // Set the token in state
+      setToken(storedToken);
+      
+      // Send the token to the backend to get user information
+      const fetchUserInfo = async () => {
+        
+        try {
+          
+          const response = await fetch('http://localhost:3001/entries', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${storedToken}`, // Send the token in the Authorization header
+            },
+          });
+          console.log(response);
+          if (!response.ok) {
+            throw new Error('Failed to authenticate');
+          }
 
+          const data = await response.json();
+          
+          const userId = data.userId;  // Assuming the userId is in the response body
+          console.log("user stuff:", data);
+          setUserId(userId);  // Store the userId in the state
+        } catch (error) {
+          console.error("Error fetching user info:", error);
+        }
+      };
+
+      fetchUserInfo();  // Call the function to fetch user data from the server
+    } else {
+      console.error("No authentication token found");
+    }
+  }, []);
   
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault(); // Prevent the default form submission behavior
+      console.log(userId);
       if (!userId) {
         alert("User ID is required.");
         return;
