@@ -351,7 +351,7 @@ router.post('/verify-token', async (req, res) => {
 //get user by username
 router.get('/user/:username', authenticateToken, async (req,res) =>{
 
-  console.log("Reach");
+ 
   const {username} = req.params;
 
   try {
