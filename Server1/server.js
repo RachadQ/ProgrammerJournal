@@ -157,11 +157,23 @@ router.post('/entrie', authenticateToken, async (req, res) => {
   if(!title || !content || !tags){
     return res.status(400).json({ message: 'Title, content, and tags are required' });
   }
+
+  // Resolve tag names to _id
+  const tagIds = await Promise.all(
+    tags.map(async (tagName) => {
+      const tagNameTrimmed = tagName.trim();
+      let tag = await Tag.findOne({ name: tagNameTrimmed });
+      if (!tag) {
+        tag = await Tag.create({ name: tagNameTrimmed });
+      }
+      return tag._id;
+    })
+  );
   // Create a new entry instance
   const newEntry = new Entry({
     title,
     content,
-    tags,
+    tags: tagIds,
     user:author,
   });
 

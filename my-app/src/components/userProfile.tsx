@@ -8,6 +8,7 @@ import JournalEntryProp from "../interface/JournalEntryProp";
 import Cookies from 'js-cookie';  // Import the js-cookie library
 import '../styles/profile.css';
 import TagsList from "./TagsList";
+import { TagProp } from "../interface/TagProp";
 
 interface userProfile {
   profile: {
@@ -18,7 +19,7 @@ interface userProfile {
   entries: JournalEntryProp[];
 }
 
-const TagComponent = ({ info }: { info: { id: string; name: string } }) => (
+const TagComponent = ({ info }: { info: { id: string; name: string }  }) => (
   <span className="bg-gray-300 text-gray-800 px-4 py-2 rounded-full">{info.name}</span>
 );
 
@@ -32,21 +33,28 @@ const UserProfile: React.FC = () => {
     const fetchProfile = async () => {
       try {
         const token = Cookies.get('authToken');
+        const refreshToken = Cookies.get('refreshToken');
+    
         if (!token) {
-          setError('No token found');
-          return;
+          if (refreshToken) {
+            // Attempt to refresh the token using the refresh token
+            const tokenResponse = await axios.post('http://localhost:3001/auth/refresh', {
+              refreshToken,
+            });
+            const newToken = tokenResponse.data.token;
+            Cookies.set('authToken', newToken); // Save the new token in the cookies
+          } else {
+            setError('No valid tokens found');
+            return;
+          }
         }
-
-        const refreshToken = Cookies.get('refreshToken'); // You can also check for refreshToken if needed
-       
+    
         const response = await axios.get<ProfileWithEntriesResponse>(`http://localhost:3001/user/${username}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${Cookies.get('authToken')}`,
           },
           withCredentials: true,
         });
-        console.log(response);
-        console.log(token);
         setProfile(response.data);
         setEntries(response.data.entries);
         setError(null);
@@ -102,9 +110,8 @@ const UserProfile: React.FC = () => {
           </div>
         </div>
       </section>
-
-      {/* Journal Entries */}
-      <section>
+ {/* Journal Entries */}
+ <section>
         <h2 className="text-xl font-semibold mt-4 text-left mx-auto max-w-xl mb-5">Journal Entries:</h2>
         <NewJournalEntryForm addEntry={handleAddEntry} />  {/* Pass the handleAddEntry function here */}
         <div className="space-y-4">
@@ -117,13 +124,11 @@ const UserProfile: React.FC = () => {
                 <p className="text-lg md:text-xl text-gray-700 text-center">{entry.content}</p>
               </div>
               <div className="entry-tags flex flex-wrap mt-4 md:mt-6 justify-center" style={{ columnGap: "20px" }}>
-                {entry.tags?.map((tag) => (
-                  <div key={tag.info.name} className="mr-2 mb-2">
-                    <TagsList tags={[{name: tag.info.name}]} /> 
-                  </div>
-                ))}
-
-
+              {entry.tags?.map(({ info }: { info: TagProp }) => (
+                <div key={info._id} className="mr-2 mb-2">
+                  <TagsList tags={[info]} />
+                </div>
+              ))}
               </div>
             </div>
           ))}

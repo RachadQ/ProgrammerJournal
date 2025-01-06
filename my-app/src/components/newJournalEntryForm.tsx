@@ -103,7 +103,7 @@ interface NewJournalEntryFormProps {
           id: response.data._id, // Assuming the response returns the new entry with _id
           title,
           content,
-          tags: tags.map((tag) => ({ info: { name: tag.name } })),  // Ensure tags conform to TagProp
+          tags: tags.map((tag) => ({ info: { _id: tag._id, name: tag.name } })),  // Ensure tags conform to TagProp
           userId: userId as string,
           createdAt: new Date().toISOString(),  // Add createdAt
           updatedAt: new Date().toISOString()   // Add updatedAt
@@ -147,7 +147,7 @@ interface NewJournalEntryFormProps {
      const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const tagNames = e.target.value.split(',').map((tag) => tag.trim());
     const tagObjects = tagNames.map((name, index) => ({
-      id: `temp-${index}`, // Generate a temporary ID for each tag
+      _id: `temp-${index}`, // Generate a temporary ID for each tag
       name,
     }));
     setTags(tagObjects);

@@ -5,7 +5,7 @@ const TagsList: React.FC<TagsListProps> = ({ tags }) => {
     return (
       <div className="tags-list">
         {tags.map(tag => (
-          <Tag key={tag.name} name={tag.name}  />
+          <Tag key={tag._id} name={tag.name} _id={tag._id}  />
         ))}
       </div>
     );

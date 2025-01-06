@@ -16,8 +16,8 @@
                 required: true,
             },
             tags: [{
-                type: string,
-                required: true, 
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Tag', 
             },],
             user:{
                 type:mongoose.Schema.Types.ObjectId,
