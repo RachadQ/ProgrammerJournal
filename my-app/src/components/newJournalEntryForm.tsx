@@ -214,8 +214,5 @@ interface NewJournalEntryFormProps {
   };
   
   export default NewJournalEntryForm;
-  export{};
 
-function jwt_decode(storedToken: string | null): any {
-  throw new Error('Function not implemented.');
-}
+

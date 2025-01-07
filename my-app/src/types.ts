@@ -1,3 +1,4 @@
+import JournalEntryProp from "./interface/JournalEntryProp";
 // Add this line to make sure the file is considered a module
 export {};
 
@@ -18,6 +19,6 @@ export interface Entry {
     lastName: string;
     email: string;
     profilePicture?: string;
-    journalEntries: Entry[];
+    journalEntries: JournalEntryProp[];
   }
   

@@ -55,8 +55,16 @@ const UserProfile: React.FC = () => {
           },
           withCredentials: true,
         });
+        console.log(response);
         setProfile(response.data);
-        setEntries(response.data.entries);
+        if (response.data.journalEntries) {
+          setEntries(response.data.
+            journalEntries); 
+        } else {
+          console.error('Error: Entries not found or invalid'); // Log the error to the console
+          setEntries([]); // Set entries to an empty array if invalid
+          setError('Entries are missing or invalid.'); // Optionally set an error state
+        }
         setError(null);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to load profile.');
@@ -84,7 +92,6 @@ const UserProfile: React.FC = () => {
   if (!profile) {
     return <div className="p-6">Loading profile...</div>;
   }
-
   return (
     <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-4">
       <section className="py-6 md:py-2">
@@ -110,29 +117,37 @@ const UserProfile: React.FC = () => {
           </div>
         </div>
       </section>
- {/* Journal Entries */}
- <section>
+  
+      {/* Journal Entries */}
+      <section>
         <h2 className="text-xl font-semibold mt-4 text-left mx-auto max-w-xl mb-5">Journal Entries:</h2>
-        <NewJournalEntryForm addEntry={handleAddEntry} />  {/* Pass the handleAddEntry function here */}
-        <div className="space-y-4">
-          {entries.map((entry) => (
-            <div key={entry.id} className="journal-post bg-white rounded-lg shadow-md p-8 md:p-12 mb-8 mx-auto max-w-xl">
-              <div className="entry-title">
-                <h3 className="text-xl md:text-2xl font-semibold text-center">{entry.title}</h3>
-              </div>
-              <div className="entry-content mt-4 md:mt-6">
-                <p className="text-lg md:text-xl text-gray-700 text-center">{entry.content}</p>
-              </div>
-              <div className="entry-tags flex flex-wrap mt-4 md:mt-6 justify-center" style={{ columnGap: "20px" }}>
-              {entry.tags?.map(({ info }: { info: TagProp }) => (
-                <div key={info._id} className="mr-2 mb-2">
-                  <TagsList tags={[info]} />
+        <NewJournalEntryForm addEntry={handleAddEntry} />
+        {entries && entries.length > 0 ? (
+          <div className="space-y-4">
+            {entries.map((entry) => (
+              <div key={entry.id} className="journal-post bg-white rounded-lg shadow-md p-8 md:p-12 mb-8 mx-auto max-w-xl">
+                <div className="entry-title">
+                  <h3 className="text-xl md:text-2xl font-semibold text-center">{entry.title}</h3>
                 </div>
-              ))}
+                <div className="entry-content mt-4 md:mt-6">
+                  <p className="text-lg md:text-xl text-gray-700 text-center">{entry.content}</p>
+                </div>
+                <div className="entry-tags flex flex-wrap mt-4 md:mt-6 justify-center" style={{ columnGap: "20px" }}>
+                  {entry.tags?.map(({ info }: { info: TagProp }) => (
+                    <div key={info._id} className="mr-2 mb-2">
+                      <TagsList tags={[info]} />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="p-6 text-gray-500 text-center">No entries yet. Start by adding a new journal entry!</div>
+            {console.error("Error: Entries are empty or undefined:", entries)} {/* This will log an error */}
+          </>
+        )}
       </section>
     </div>
   );
