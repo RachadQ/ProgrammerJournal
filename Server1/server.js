@@ -90,7 +90,7 @@ const authenticateToken = (req,res,next) =>
 
       // If the token is valid, attach the user info to the request object
       req.user = user;
-      console.log("user info: " + JSON.stringify(req.user, null, 2));
+      
       next(); // Proceed to the next middleware
     });
   } catch (error) {
@@ -105,7 +105,7 @@ router.get('/user-info', authenticateToken, async (req, res) => {
   try {
     const user = req.user;  // User info is attached after successful authentication
     
-    console.log("User ID from token user info:", user); // Debugging take out
+    
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -170,15 +170,18 @@ router.put('/profile/:username',authenticateToken,async(req,res)=>
 
 //create a new journal entry
 router.post('/entrie', authenticateToken, async (req, res) => {
- 
+  
   try{
   //Get route to retrieve use and their entries
   const { title, content, tags } = req.body; //for later
-    const author = req.user._id;
+    const author = req.user.id;
   if(!title || !content || !tags){
     return res.status(400).json({ message: 'Title, content, and tags are required' });
   }
 
+  if (!Array.isArray(tags)) {
+    return res.status(400).json({ message: 'Tags should be an array' });
+  }
   // Resolve tag names to _id
   const tagIds = await Promise.all(
     tags.map(async (tagName) => {
@@ -382,15 +385,17 @@ router.post('/verify-token', async (req, res) => {
 });
 
 //get user by username
-router.get('/user/:username', authenticateToken, async (req,res) =>{
+router.get('/user/:username', async (req,res) =>{
 
  
   const {username} = req.params;
+  const{page = 1, limit = 5} = req.query;
 
   try {
    
-    //find user by username
-    const user = await User.findOne({username}).populate('journalEntries').select('-password');
+   // Fetch the user by username
+   const user = await User.findOne({ username });
+
    
     //if user not found
     if(!user)
@@ -399,7 +404,15 @@ router.get('/user/:username', authenticateToken, async (req,res) =>{
     }
 
     // Fetch the journal entries for this user by their ObjectId
-    const entries = await Entry.find({ user: user._id }).populate('tags').select('-user').exec();
+    const journalEntries = await Entry.find({ user: user._id })
+      .populate('tags', 'name _id') // Populate tags within journal entries
+      .skip((page-1)* limit)
+      .limit(Number(limit))
+      .exec();
+    console.log(journalEntries);
+    
+    // Fetch the journal entries for this user by their ObjectId
+    const totalEntries = await Entry.countDocuments({ user: user._id });
 
     res.status(200).json({
       id: user.id,
@@ -408,7 +421,8 @@ router.get('/user/:username', authenticateToken, async (req,res) =>{
       email: user.email,
       profilePicture: user.profilePicture,
       username: user.username,
-      journalEntries: entries,
+      journalEntries: journalEntries,
+      totalEntries,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
   });
@@ -548,7 +562,7 @@ router.get('/tag/:name', async (req, res) => {
 
 });
 router.get('/tags/search', async (req, res) => {
-  console.log("Reach");
+ 
   const query = req.query.query || ''; // Get the query from the request
   try {
     const tags = await Tag.find({ name: { $regex: query, $options: 'i' } }).limit(10); // Search for tags matching query
@@ -559,7 +573,7 @@ router.get('/tags/search', async (req, res) => {
 });
 router.post('/tag', async (req, res) => {
   
-  console.log("Reached tag creation route");
+
 
   const { name } = req.body; // Assuming the tag's name is sent in the body
 

@@ -14,6 +14,7 @@ interface NewJournalEntryFormProps {
     const [isOpen, setIsOpen] = useState(false);
     const [token, setToken] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
+    const [query, setQuery] = useState(""); 
     const [tagSuggestions, setTagSuggestions] = useState<TagProp[]>([]);
 
 
@@ -81,42 +82,24 @@ interface NewJournalEntryFormProps {
     
       try {
         
-        // Clean up tag names: join and split to remove empty values
-        const tagNames = tags
-          .map((tag) => tag.name)
-          .join(',') // Join into a string, in case there are multiple tags
-          .split(',') // Split back into array, removing any extra commas
-          .map(tag => tag.trim()) // Trim spaces from tag names
+        const tagNames = tags.map(tag => tag.name); // Extract tag names
+
     
-        const tagIds: string[] = []; // Store tag IDs here
-    
-        // Loop over tag names and send them to the backend to either create or resolve
-        for (const tagName of tagNames) {
-          if (!tagName) continue; // Skip empty tags
-          console.log("Reach 101");
-          const response: AxiosResponse<{ _id: string }> = await axios.post(
-            'http://localhost:3001/tags', // POST request to create or resolve tag
-            { name: tagName },
-          );
-    
-          if (response.data) {
-            tagIds.push(response.data._id); // Add the tag's ID to the array
-          }
-        }
+        
     
         // Create the journal entry with resolved tag IDs
         const response = await axios.post(
           'http://localhost:3001/entrie',
-          { title, content, tags: tagIds, userId: userId },
+          { title, content, tags: tagNames, userId: userId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
     
         // Add the new entry to the local state (or any state management you use)
         addEntry({
-          id: response.data._id, // Assuming backend returns the new entry with _id
+          _id: response.data._id, // Assuming backend returns the new entry with _id
           title,
           content,
-          tags: tags.map((tag) => ({ info: { _id: tag._id, name: tag.name } })), // Ensure tags are correctly formatted
+          tags: tags.map((tag) => ({ _id: tag._id, name: tag.name } )), // Ensure tags are correctly formatted
           userId: userId as string,
           createdAt: new Date().toISOString(),  // Add createdAt timestamp
           updatedAt: new Date().toISOString(),  // Add updatedAt timestamp
@@ -157,98 +140,134 @@ interface NewJournalEntryFormProps {
       setIsOpen(true);
     };
 
-     const handleTagChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const query = e.target.value;
-      const tagNames = query.split(',').map((tag) => tag.trim());
-      const tagObjects = tagNames.map((name, index) => ({
-        _id: `temp-${index}`,
-        name,
-      }));
-      setTags(tagObjects);
-  
-      if (query.length >= 1) {
+
+
+    const handleTagChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newQuery = e.target.value;
+      setQuery(newQuery);
+    
+      // Filter out duplicates from the current tags
+      const uniqueTags = newQuery
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((name) => name && !tags.some((tag) => tag.name.toLowerCase() === name));
+    
+      // Check if there are new valid tags
+      if (uniqueTags.length > 0) {
         try {
-          const response = await axios.get(`http://localhost:3001/tags/search?query=${query}`);
-          setTagSuggestions(response.data);
+          // Fetch tag suggestions from the server (only valid tags from the database)
+          const response = await axios.get(`http://localhost:3001/tags/search?query=${newQuery}`);
+          setTagSuggestions(response.data); // Update suggestions from the backend
         } catch (error) {
-          console.error('Error fetching tag suggestions:', error);
+          console.error("Error fetching tag suggestions:", error);
         }
       } else {
-        setTagSuggestions([]);
+        setTagSuggestions([]); // Clear suggestions if no new valid tags
       }
+    };
+    
+
+  const handleAddTag = (tag: TagProp) => {
+    // Add the selected tag from the suggestion list if not already added
+    if (!tags.some((existingTag) => existingTag.name.toLowerCase() === tag.name.toLowerCase())) {
+      setTags((prevTags) => [...prevTags, tag]);
+    }
   };
+
+  const handleRemoveTag = (tagId: string) => {
+    setTags((prevTags) => prevTags.filter((tag) => tag._id !== tagId));
+
+  };
+
   
-    return (
-      <div className="relative flex justify-center items-center min-h-[10vh] bg-gray-100">
-        <button
-          className="flex items-center bg-white text-gray-500 font-medium py-2 px-4 rounded-full shadow hover:bg-gray-100 transition duration-300 ease-in-out"
-          onClick={handleOpen}
-        >
-          <span className="text-left">Start a post</span>
-        </button>
-        {isOpen && (
-          <div className="fixed inset-0 bg-gray-700 bg-opacity-75 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4 text-center">Create a Post</h2>
-              <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-semibold">Title:</label>
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-semibold">Content:</label>
-                  <textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
-                <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-semibold">Tags (comma-separated):</label>
-                  <input
-                    type="text"
-                    value={tags.map(tag => tag.name).join(', ')}
-                    onChange={handleTagChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg"
-                  />
-                   {tagSuggestions.length > 0 && (
-                  <ul className="bg-white border border-gray-300 rounded-lg mt-2">
-                    {tagSuggestions.map((tag) => (
-                      <li
-                        key={tag._id}
-                        className="p-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => setTags((prevTags) => [...prevTags, tag])}
+  return (
+    <div className="relative flex justify-center items-center min-h-[10vh] bg-gray-100">
+      <button
+        className="flex items-center bg-white text-gray-500 font-medium py-2 px-4 rounded-full shadow hover:bg-gray-100 transition duration-300 ease-in-out"
+        onClick={handleOpen}
+      >
+        <span className="text-left">Start a post</span>
+      </button>
+      {isOpen && (
+        <div className="fixed inset-0 bg-gray-700 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4 text-center">Create a Post</h2>
+            <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-semibold">Title:</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-semibold">Content:</label>
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-semibold">Tags (comma-separated):</label>
+                <input
+                  type="text"
+                  value={query} // Controlled input for query
+                  onChange={handleTagChange}
+                  className="w-full p-2 border border-gray-300 rounded-lg"
+                />
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag._id}
+                      className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                    >
+                      {tag.name}
+                      <button
+                        type="button"
+                        className="text-red-500 hover:text-red-700"
+                        onClick={() => handleRemoveTag(tag._id)}
                       >
-                        {tag.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                        ×
+                      </button>
+                    </span>
+                  ))}
                 </div>
-                <button
-                  type="submit"
-                  className="w-full bg-blue-500 text-white py-2 rounded-lg mt-4 hover:bg-blue-600 transition"
-                >
-                  Add Entry
-                </button>
-                <button
-                  type="button"
-                  className="w-full bg-gray-500 text-white py-2 rounded-lg mt-4 hover:bg-gray-600 transition"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Cancel
-                </button>
-              </form>
-            </div>
+                {tagSuggestions.length > 0 && (
+                 <ul className="bg-white border border-gray-300 rounded-lg mt-2">
+                  {tagSuggestions.map((tag) => (
+                    <li
+                      key={tag._id}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleAddTag(tag)} // Add tag to the selected tags list
+                    >
+                      {tag.name}
+                    </li>
+                  ))}
+                </ul>
+                )}
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-blue-500 text-white py-2 rounded-lg mt-4 hover:bg-blue-600 transition"
+              >
+                Add Entry
+              </button>
+              <button
+                type="button"
+                className="w-full bg-gray-500 text-white py-2 rounded-lg mt-4 hover:bg-gray-600 transition"
+                onClick={() => setIsOpen(false)}
+              >
+                Cancel
+              </button>
+            </form>
           </div>
-        )}
-      </div>
-    );
+        </div>
+      )}
+    </div>
+  );
   };
   
   export default NewJournalEntryForm;

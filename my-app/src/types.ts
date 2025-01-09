@@ -20,5 +20,6 @@ export interface Entry {
     email: string;
     profilePicture?: string;
     journalEntries: JournalEntryProp[];
+    totalEntries;
   }
   

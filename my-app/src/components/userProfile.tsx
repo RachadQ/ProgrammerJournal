@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useRef  } from "react";
 import axios from 'axios';
 import JournalEntryList from "./journalEntryList";
 import NewJournalEntryForm from "./newJournalEntryForm";
@@ -8,7 +8,7 @@ import JournalEntryProp from "../interface/JournalEntryProp";
 import Cookies from 'js-cookie';  // Import the js-cookie library
 import '../styles/profile.css';
 import TagsList from "./TagsList";
-import { TagProp } from "../interface/TagProp";
+
 
 interface userProfile {
   profile: {
@@ -28,52 +28,74 @@ const UserProfile: React.FC = () => {
   const [profile, setProfile] = useState<ProfileWithEntriesResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [entries, setEntries] = useState<JournalEntryProp[]>([]);
+  const [totalEntries, setTotalEntries] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const loaderRef = useRef(null);
+  const [page, setPage] = useState(1);
+
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfile = async (page: number) => {
+      setLoading(true);
       try {
         const token = Cookies.get('authToken');
         const refreshToken = Cookies.get('refreshToken');
-    
-        if (!token) {
-          if (refreshToken) {
-            // Attempt to refresh the token using the refresh token
-            const tokenResponse = await axios.post('http://localhost:3001/auth/refresh', {
-              refreshToken,
-            });
-            const newToken = tokenResponse.data.token;
-            Cookies.set('authToken', newToken); // Save the new token in the cookies
-          } else {
-            setError('No valid tokens found');
-            return;
-          }
+        
+        if (!token && refreshToken) {
+          const tokenResponse = await axios.post('http://localhost:3001/auth/refresh', { refreshToken });
+          const newToken = tokenResponse.data.token;
+          Cookies.set('authToken', newToken);
         }
-    
+
         const response = await axios.get<ProfileWithEntriesResponse>(`http://localhost:3001/user/${username}`, {
-          headers: {
-            Authorization: `Bearer ${Cookies.get('authToken')}`,
-          },
+          headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
+          params: { page, limit: 5 },
           withCredentials: true,
         });
-        console.log(response);
+
         setProfile(response.data);
-        if (response.data.journalEntries) {
-          setEntries(response.data.journalEntries); 
-        } else {
-          console.error('Error: Entries not found or invalid'); // Log the error to the console
-          setEntries([]); // Set entries to an empty array if invalid
-          setError('Entries are missing or invalid.'); // Optionally set an error state
-        }
-        setError(null);
+        
+         // Filter out any duplicate entries based on the _id
+    setEntries(prevEntries => {
+      const existingEntryIds = prevEntries.map(entry => entry._id);
+      const newEntries = response.data.journalEntries.filter(entry => !existingEntryIds.includes(entry._id));
+      return [...prevEntries, ...newEntries];
+    });
+        setTotalEntries(response.data.totalEntries);
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load profile.');
+        console.error('Error fetching profile:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
     if (username) {
-      fetchProfile();
+      fetchProfile(page);
     }
-  }, [username]);
+  }, [username, page]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && entries[0].intersectionRatio > 0) {
+          if (entries.length < totalEntries && !loading) {
+            setPage(prevPage => prevPage + 1);
+          }
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => {
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
+      }
+    };
+  }, [loading, totalEntries]);
 
   if (error) {
     return <div className="p-6 text-red-500">{error}</div>;
@@ -124,7 +146,7 @@ const UserProfile: React.FC = () => {
         {entries && entries.length > 0 ? (
           <div className="space-y-4">
             {entries.map((entry) => (
-              <div key={entry.id} className="journal-post bg-white rounded-lg shadow-md p-8 md:p-12 mb-8 mx-auto max-w-xl">
+               <div key={entry._id} className="journal-post bg-white rounded-lg shadow-md p-8 md:p-12 mb-8 mx-auto max-w-xl">
                 <div className="entry-title">
                   <h3 className="text-xl md:text-2xl font-semibold text-center">{entry.title}</h3>
                 </div>
@@ -132,11 +154,15 @@ const UserProfile: React.FC = () => {
                   <p className="text-lg md:text-xl text-gray-700 text-center">{entry.content}</p>
                 </div>
                 <div className="entry-tags flex flex-wrap mt-4 md:mt-6 justify-center" style={{ columnGap: "20px" }}>
-                  {entry.tags?.map(({ info }: { info: TagProp }) => (
-                    <div key={info._id} className="mr-2 mb-2">
-                      <TagsList tags={[info]} />
+                {Array.isArray(entry.tags) && entry.tags.length > 0 ? (
+                  entry.tags.map((tag) => (
+                    <div key={tag._id} className="mr-2 mb-2">
+                         <TagsList tags={[tag]} />   {/* Pass the tag object directly */}
                     </div>
-                  ))}
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center">No tags available.</p>
+                )}
                 </div>
               </div>
             ))}
