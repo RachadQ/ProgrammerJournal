@@ -14,6 +14,8 @@ interface NewJournalEntryFormProps {
     const [isOpen, setIsOpen] = useState(false);
     const [token, setToken] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
+    const [tagSuggestions, setTagSuggestions] = useState<TagProp[]>([]);
+
 
   
 
@@ -38,23 +40,24 @@ interface NewJournalEntryFormProps {
       const fetchUserInfo = async () => {
         
         try {
-          
-          const response = await fetch('http://localhost:3001/entries', {
+         
+          const response = await fetch('http://localhost:3001/user-info', {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${storedToken}`, // Send the token in the Authorization header
             },
           });
-          console.log(response);
+          
+          
           if (!response.ok) {
             throw new Error('Failed to authenticate');
           }
 
           const data = await response.json();
+        
+          const { _id } = data;  // Assuming the userId is in the response body
           
-          const userId = data.userId;  // Assuming the userId is in the response body
-          console.log("user stuff:", data);
-          setUserId(userId);  // Store the userId in the state
+          setUserId(_id);  // Store the userId in the state
         } catch (error) {
           console.error("Error fetching user info:", error);
         }
@@ -67,49 +70,59 @@ interface NewJournalEntryFormProps {
   }, []);
   
     const handleSubmit = async (e: React.FormEvent) => {
+     
       e.preventDefault(); // Prevent the default form submission behavior
-      console.log(userId);
+
+      
       if (!userId) {
         alert("User ID is required.");
         return;
       }
+    
       try {
-        const tagNames = tags.map((tag) => tag.name).join(',').split(',').map(tag => tag.trim());
-    const tagIds: string[] = []; // Explicitly type as an array of strings
-
-    for (const tagName of tagNames) {
+        
+        // Clean up tag names: join and split to remove empty values
+        const tagNames = tags
+          .map((tag) => tag.name)
+          .join(',') // Join into a string, in case there are multiple tags
+          .split(',') // Split back into array, removing any extra commas
+          .map(tag => tag.trim()) // Trim spaces from tag names
+    
+        const tagIds: string[] = []; // Store tag IDs here
+    
+        // Loop over tag names and send them to the backend to either create or resolve
+        for (const tagName of tagNames) {
+          if (!tagName) continue; // Skip empty tags
+          console.log("Reach 101");
           const response: AxiosResponse<{ _id: string }> = await axios.post(
-            'http://localhost:3001/tags',
-            { name: tagName }
+            'http://localhost:3001/tags', // POST request to create or resolve tag
+            { name: tagName },
           );
-
+    
           if (response.data) {
-            tagIds.push(response.data._id); // TypeScript knows tagIds should hold strings
+            tagIds.push(response.data._id); // Add the tag's ID to the array
           }
         }
-
+    
+        // Create the journal entry with resolved tag IDs
         const response = await axios.post(
-          'http://localhost:3001/entries',
-          { title,
-             content,
-              tags: tagIds ,
-              userId: userId
-            },
+          'http://localhost:3001/entrie',
+          { title, content, tags: tagIds, userId: userId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        
-  
+    
+        // Add the new entry to the local state (or any state management you use)
         addEntry({
-          id: response.data._id, // Assuming the response returns the new entry with _id
+          id: response.data._id, // Assuming backend returns the new entry with _id
           title,
           content,
-          tags: tags.map((tag) => ({ info: { _id: tag._id, name: tag.name } })),  // Ensure tags conform to TagProp
+          tags: tags.map((tag) => ({ info: { _id: tag._id, name: tag.name } })), // Ensure tags are correctly formatted
           userId: userId as string,
-          createdAt: new Date().toISOString(),  // Add createdAt
-          updatedAt: new Date().toISOString()   // Add updatedAt
+          createdAt: new Date().toISOString(),  // Add createdAt timestamp
+          updatedAt: new Date().toISOString(),  // Add updatedAt timestamp
         });
-  
-  
+    
+        // Reset form fields
         setTitle('');
         setContent('');
         setTags([]);
@@ -144,13 +157,25 @@ interface NewJournalEntryFormProps {
       setIsOpen(true);
     };
 
-     const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const tagNames = e.target.value.split(',').map((tag) => tag.trim());
-    const tagObjects = tagNames.map((name, index) => ({
-      _id: `temp-${index}`, // Generate a temporary ID for each tag
-      name,
-    }));
-    setTags(tagObjects);
+     const handleTagChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const query = e.target.value;
+      const tagNames = query.split(',').map((tag) => tag.trim());
+      const tagObjects = tagNames.map((name, index) => ({
+        _id: `temp-${index}`,
+        name,
+      }));
+      setTags(tagObjects);
+  
+      if (query.length >= 1) {
+        try {
+          const response = await axios.get(`http://localhost:3001/tags/search?query=${query}`);
+          setTagSuggestions(response.data);
+        } catch (error) {
+          console.error('Error fetching tag suggestions:', error);
+        }
+      } else {
+        setTagSuggestions([]);
+      }
   };
   
     return (
@@ -191,6 +216,19 @@ interface NewJournalEntryFormProps {
                     onChange={handleTagChange}
                     className="w-full p-2 border border-gray-300 rounded-lg"
                   />
+                   {tagSuggestions.length > 0 && (
+                  <ul className="bg-white border border-gray-300 rounded-lg mt-2">
+                    {tagSuggestions.map((tag) => (
+                      <li
+                        key={tag._id}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => setTags((prevTags) => [...prevTags, tag])}
+                      >
+                        {tag.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 </div>
                 <button
                   type="submit"

@@ -58,8 +58,7 @@ const UserProfile: React.FC = () => {
         console.log(response);
         setProfile(response.data);
         if (response.data.journalEntries) {
-          setEntries(response.data.
-            journalEntries); 
+          setEntries(response.data.journalEntries); 
         } else {
           console.error('Error: Entries not found or invalid'); // Log the error to the console
           setEntries([]); // Set entries to an empty array if invalid

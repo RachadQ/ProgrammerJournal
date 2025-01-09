@@ -100,6 +100,27 @@ const authenticateToken = (req,res,next) =>
   }
 }
 
+// Get user information route
+router.get('/user-info', authenticateToken, async (req, res) => {
+  try {
+    const user = req.user;  // User info is attached after successful authentication
+    
+    console.log("User ID from token user info:", user); // Debugging take out
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Respond with the user info (e.g., userId)
+    res.status(200).json({
+      _id: user.id,  // Send the userId back to the frontend
+      username: user.username,  // You can also return the username or other relevant data
+    });
+  } catch (error) {
+    console.error('Error fetching user info:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 //Update profile route
 router.put('/profile/:username',authenticateToken,async(req,res)=>
 {
@@ -517,7 +538,7 @@ router.post('/logout', authenticateToken, (req, res) => {
   }
 });
 
-router.get('/tags/:name', async (req, res) => {
+router.get('/tag/:name', async (req, res) => {
   const tag = await Tag.findOne({ name: req.params.name });
   if (tag) {
     res.json(tag);
@@ -526,8 +547,18 @@ router.get('/tags/:name', async (req, res) => {
   }
 
 });
-router.post('/tag', async (req, res) => {
+router.get('/tags/search', async (req, res) => {
   console.log("Reach");
+  const query = req.query.query || ''; // Get the query from the request
+  try {
+    const tags = await Tag.find({ name: { $regex: query, $options: 'i' } }).limit(10); // Search for tags matching query
+    res.json(tags);
+  } catch (error) {
+    res.status(500).send('Error fetching tags');
+  }
+});
+router.post('/tag', async (req, res) => {
+  
   console.log("Reached tag creation route");
 
   const { name } = req.body; // Assuming the tag's name is sent in the body
@@ -550,6 +581,8 @@ router.post('/tag', async (req, res) => {
     res.status(500).json({ message: 'Error creating tag', error: error.message });
   }
 });
+
+
 
 // Add this route to handle token refresh
 router.post('/refresh-token', async (req, res) => {
