@@ -1,15 +1,11 @@
 import { TagProp } from './TagProp';
 
 
-
-
-
-
 export default interface JournalEntryProp {
-    _id: number;
+    _id: string;
     title: string;
     content: string;
-    userId: string;
+    user: string;
     createdAt: string;
     updatedAt: string;
     tags: TagProp[];

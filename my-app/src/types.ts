@@ -13,6 +13,7 @@ export interface Entry {
 
 
   export interface ProfileWithEntriesResponse {
+    id: string;
     entries: any;
     username: string;
     firstName: string;

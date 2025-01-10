@@ -175,6 +175,7 @@ router.post('/entrie', authenticateToken, async (req, res) => {
   //Get route to retrieve use and their entries
   const { title, content, tags } = req.body; //for later
     const author = req.user.id;
+   
   if(!title || !content || !tags){
     return res.status(400).json({ message: 'Title, content, and tags are required' });
   }
@@ -333,7 +334,7 @@ router.get('/verify-email', async(req,res) =>
 {
  
   const {token} = req.query;
-  console.log(token);
+  
 
   if (!token) {
     return res.status(400).json({ message: 'Token is missing' });
@@ -390,7 +391,7 @@ router.get('/user/:username', async (req,res) =>{
  
   const {username} = req.params;
   const{page = 1, limit = 5} = req.query;
-
+  
   try {
    
    // Fetch the user by username
@@ -409,13 +410,13 @@ router.get('/user/:username', async (req,res) =>{
       .skip((page-1)* limit)
       .limit(Number(limit))
       .exec();
-    console.log(journalEntries);
+    
     
     // Fetch the journal entries for this user by their ObjectId
     const totalEntries = await Entry.countDocuments({ user: user._id });
-
+   
     res.status(200).json({
-      id: user.id,
+      id: user._id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
@@ -425,6 +426,7 @@ router.get('/user/:username', async (req,res) =>{
       totalEntries,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      user: user.user,
   });
   
   } catch (error) {

@@ -10,15 +10,6 @@ import '../styles/profile.css';
 import TagsList from "./TagsList";
 
 
-interface userProfile {
-  profile: {
-    name: string;
-    title: string;
-    id: number;
-  };
-  entries: JournalEntryProp[];
-}
-
 const TagComponent = ({ info }: { info: { id: string; name: string }  }) => (
   <span className="bg-gray-300 text-gray-800 px-4 py-2 rounded-full">{info.name}</span>
 );
@@ -31,9 +22,21 @@ const UserProfile: React.FC = () => {
   const [totalEntries, setTotalEntries] = useState(0);
   const [loading, setLoading] = useState(false);
   const loaderRef = useRef(null);
+  const [hasMoreEntries, setHasMoreEntries] = useState(true);
   const [page, setPage] = useState(1);
+  const { userId } = useParams<{ userId: string }>();
+  const [authenticatedUserId, setAuthenticatedUserId] = useState<string | null>(null);
 
 
+       // Function to get cookie value by name
+       const getCookie = (name: string): string | null => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+        return null;
+      };
+
+      
   useEffect(() => {
     const fetchProfile = async (page: number) => {
       setLoading(true);
@@ -52,7 +55,8 @@ const UserProfile: React.FC = () => {
           params: { page, limit: 5 },
           withCredentials: true,
         });
-
+       
+        setAuthenticatedUserId(response.data.id);
         setProfile(response.data);
         
          // Filter out any duplicate entries based on the _id
@@ -62,6 +66,10 @@ const UserProfile: React.FC = () => {
       return [...prevEntries, ...newEntries];
     });
         setTotalEntries(response.data.totalEntries);
+        // Check if more entries are available
+        if (entries.length >= response.data.totalEntries) {
+          setHasMoreEntries(false); // Stop fetching when all entries are loaded
+        }
       } catch (err: any) {
         console.error('Error fetching profile:', err);
       } finally {
@@ -69,16 +77,16 @@ const UserProfile: React.FC = () => {
       }
     };
 
-    if (username) {
+    if (username && hasMoreEntries) {
       fetchProfile(page);
     }
-  }, [username, page]);
+  }, [username, page,hasMoreEntries]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && entries[0].intersectionRatio > 0) {
-          if (entries.length < totalEntries && !loading) {
+          if (!loading && hasMoreEntries ) {
             setPage(prevPage => prevPage + 1);
           }
         }
@@ -105,6 +113,17 @@ const UserProfile: React.FC = () => {
     setEntries((prevEntries) => [...prevEntries, newEntry]);
   };
 
+  const deleteEntry = (entryId: string) => {
+    setEntries((prevEntries) => prevEntries.filter((entry) => entry._id !== entryId));
+  };
+
+  const editEntry = (entry: JournalEntryProp) => {
+    setEntries((prevEntries) =>
+      prevEntries.map((e) => (e._id === entry._id ? entry : e))
+    );
+  };
+
+
   const downloadResume = async () => {
     const googleDriveLink = "https://drive.google.com/uc?export=download&id=1UsBGAJXyWdA9WQxzJeGj85fsSDKZFEVI";
     window.location.href = googleDriveLink;
@@ -127,7 +146,7 @@ const UserProfile: React.FC = () => {
           <div className="text-center">
             <div className="flex justify-center mb-2 md:mb-2">
               <img
-                src={`https://www.bing.com/th?id=OIP.42gCaIWoZnhhRiZ7BzQXjQHaHa&w=174&h=185&c=8&rs=1&qlt=90&o=6&dpr=1.3&pid=3.1&rm=2`} 
+                src={`https://www.bing.com/th?id=OIP.42gCaIWoZnhhRiZ7BzQXjQHaHa&w=174&h=185&c=8&rs=1&qlt=90&o=6&dpr=1.3&pid=3.1&rm=2`}
                 alt="Profile Picture"
                 className="w-32 h-32 md:w-48 md:h-48 rounded-full"
               />
@@ -138,41 +157,26 @@ const UserProfile: React.FC = () => {
           </div>
         </div>
       </section>
-  
+
       {/* Journal Entries */}
       <section>
         <h2 className="text-xl font-semibold mt-4 text-left mx-auto max-w-xl mb-5">Journal Entries:</h2>
         <NewJournalEntryForm addEntry={handleAddEntry} />
         {entries && entries.length > 0 ? (
           <div className="space-y-4">
-            {entries.map((entry) => (
-               <div key={entry._id} className="journal-post bg-white rounded-lg shadow-md p-8 md:p-12 mb-8 mx-auto max-w-xl">
-                <div className="entry-title">
-                  <h3 className="text-xl md:text-2xl font-semibold text-center">{entry.title}</h3>
-                </div>
-                <div className="entry-content mt-4 md:mt-6">
-                  <p className="text-lg md:text-xl text-gray-700 text-center">{entry.content}</p>
-                </div>
-                <div className="entry-tags flex flex-wrap mt-4 md:mt-6 justify-center" style={{ columnGap: "20px" }}>
-                {Array.isArray(entry.tags) && entry.tags.length > 0 ? (
-                  entry.tags.map((tag) => (
-                    <div key={tag._id} className="mr-2 mb-2">
-                         <TagsList tags={[tag]} />   {/* Pass the tag object directly */}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-center">No tags available.</p>
-                )}
-                </div>
-              </div>
-            ))}
+            <JournalEntryList
+              entries={entries}
+              userId={authenticatedUserId || userId} // Use authenticatedUserId or userId
+              onDelete={deleteEntry}
+              onEdit={editEntry}
+            />
           </div>
         ) : (
-          <>
-            <div className="p-6 text-gray-500 text-center">No entries yet. Start by adding a new journal entry!</div>
-            {console.error("Error: Entries are empty or undefined:", entries)} {/* This will log an error */}
-          </>
+          <div className="p-6 text-gray-500 text-center">No entries yet. Start by adding a new journal entry!</div>
         )}
+        <div ref={loaderRef} className="loading-more text-center py-4">
+          {loading && <span>Loading more entries...</span>}
+        </div>
       </section>
     </div>
   );

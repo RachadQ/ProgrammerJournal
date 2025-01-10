@@ -28,11 +28,11 @@
     )
     
 // Exclude the `user` field from the response
-entrySchema.methods.toJSON = function () {
+/*entrySchema.methods.toJSON = function () {
     const entry = this.toObject();
     delete entry.user; // Remove user field before sending back the response
     return entry;
-};
+};*/
 
     const Entry = mongoose.model('Entry',entrySchema)
     module.exports = Entry;

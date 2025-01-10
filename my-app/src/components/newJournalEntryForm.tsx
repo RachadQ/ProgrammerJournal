@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import React, { useState, useEffect } from 'react';
 import  JournalEntryProp  from '../interface/JournalEntryProp';
 import { TagProp } from '../interface/TagProp';
+
 interface NewJournalEntryFormProps {
   addEntry: (newEntry: JournalEntryProp) => void;
 }
@@ -32,7 +33,6 @@ interface NewJournalEntryFormProps {
   useEffect(() => {
     
     const storedToken = getCookie('authToken'); // Get the token from cookies
-   
     if (storedToken) {
       // Set the token in state
       setToken(storedToken);
@@ -100,7 +100,7 @@ interface NewJournalEntryFormProps {
           title,
           content,
           tags: tags.map((tag) => ({ _id: tag._id, name: tag.name } )), // Ensure tags are correctly formatted
-          userId: userId as string,
+          user: userId as string,
           createdAt: new Date().toISOString(),  // Add createdAt timestamp
           updatedAt: new Date().toISOString(),  // Add updatedAt timestamp
         });
