@@ -8,6 +8,7 @@ import JournalEntryProp from "../interface/JournalEntryProp";
 import Cookies from 'js-cookie';  // Import the js-cookie library
 import '../styles/profile.css';
 import TagsList from "./TagsList";
+import TagsFilter from "./TagsFilter";
 
 
 const TagComponent = ({ info }: { info: { id: string; name: string }  }) => (
@@ -26,6 +27,7 @@ const UserProfile: React.FC = () => {
   const [page, setPage] = useState(1);
   const { userId } = useParams<{ userId: string }>();
   const [authenticatedUserId, setAuthenticatedUserId] = useState<string | null>(null);
+  const [filteredEntries, setFilteredEntries] = useState<JournalEntryProp[]>(entries);
 
 
        // Function to get cookie value by name
@@ -132,6 +134,8 @@ const UserProfile: React.FC = () => {
   if (!profile) {
     return <div className="p-6">Loading profile...</div>;
   }
+ 
+
   return (
     <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-4">
       <section className="py-6 md:py-2">
@@ -157,9 +161,13 @@ const UserProfile: React.FC = () => {
           </div>
         </div>
       </section>
-
+      <section className="tags-section">
+        <h2 className="text-xl font-semibold mt-4">Tags:</h2>
+        <TagsFilter entries={entries} onFilterChange={setFilteredEntries} />
+      </section>
       {/* Journal Entries */}
       <section>
+
         <h2 className="text-xl font-semibold mt-4 text-left mx-auto max-w-xl mb-5">Journal Entries:</h2>
         <NewJournalEntryForm addEntry={handleAddEntry} />
         {entries && entries.length > 0 ? (
