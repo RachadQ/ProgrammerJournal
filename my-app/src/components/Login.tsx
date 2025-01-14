@@ -92,6 +92,16 @@ const LoginPage: React.FC = () => {
               Login
             </button>
           </form>
+          {/* Forgot Password Link */}
+        <p className="mt-4 text-sm text-center">
+          Forgot your password?{' '}
+          <button
+            onClick={() => navigate('/forgot-password')}
+            className="text-blue-500 hover:underline"
+          >
+            Reset it here
+          </button>
+        </p>
         </div>
       </div>
     );

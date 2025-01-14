@@ -7,6 +7,8 @@ import HomePage from './components/HomePage';
 import LoginPage from './components/Login'
 import SignUp from './components/SignUp';
 import EmailVerification from "./components/EmailVerification";
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 function App() {
 
   const profileData = {
@@ -28,6 +30,8 @@ function App() {
           <Route path="/signUp" element={<SignUp/>} />
           {/* New route for verifying email page */}
           <Route path="/verify-email" element={<EmailVerification />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Routes>
        </Router>
     </div>

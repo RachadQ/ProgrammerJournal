@@ -19,6 +19,7 @@
         });
     
         setUniqueTags(["All", ...Array.from(tagsSet)]);
+        onFilterChange(userEntries);
       }, [entries, authenticatedUserId]);
 
       const handleTagClick = (tag: string) => {

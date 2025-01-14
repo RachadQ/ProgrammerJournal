@@ -9,6 +9,8 @@ const router = new express.Router()
 // ADD THIS
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const crypto = require('crypto');
+const bcryptjs = require('bcryptjs');
 
 const usersController = require("./controller/users")
 // get config
@@ -34,6 +36,7 @@ app.use(cors({
 }));
 
 app.use(cookieParser());
+
 
 //models
 const Entry = require(__basedir + '/models/entry');
@@ -473,6 +476,7 @@ router.post('/login',async (req,res) =>
     {
       return res.status(400).json({message: 'Invalid credentials'})
     }
+   
 
     // Generate JWT token with redirectUrl in the payload
   const redirectUrl = `/user/${user.username}`;
@@ -541,6 +545,65 @@ router.post('/login',async (req,res) =>
   }
 }
 )
+
+router.post('/forgot-password',async(req,res) =>
+{
+  
+  try{
+    const {email} = req.body;
+
+    //validate the email fields
+    if(!email)
+    {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    //check if the user exists by email
+    const user = await User.findOne({email});
+
+    if (!user) {
+      return res.status(404).json({ message: 'No account found with this email' });
+    }
+    
+    // Generate a password reset token using the method defined in the User schema
+    const resetToken = user.getResetPasswordToken();
+
+    await user.save();
+
+    // Create the password reset link
+    const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+    // Configure the transporter
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.mailtrap.io',
+      port: 587,
+      auth: {
+        user: process.env.MAILTRAP_USER,
+        pass: process.env.MAILTRAP_PASS,
+      },
+    });
+
+    // Email options
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Request',
+      html: `<p>You requested a password reset. Click <a href="${resetUrl}">here</a> to reset your password.</p>
+             <p>If you did not request this, please ignore this email.</p>`,
+    };
+
+     // Send the email
+     await transporter.sendMail(mailOptions);
+     res.status(200).json({
+      message: 'Password reset link sent to your email',
+    });
+  }
+  catch(err)
+  {
+    res.status(500).json({ message: 'An error occurred', error: err.message });
+  }
+
+
+})
 // Sign out route
 router.post('/logout', authenticateToken, (req, res) => {
   try {
@@ -594,6 +657,46 @@ router.post('/tag', async (req, res) => {
   } catch (error) {
     console.error("Error creating tag:", error);
     res.status(500).json({ message: 'Error creating tag', error: error.message });
+  }
+});
+
+// Reset password route
+router.post('/reset-password', async (req, res) => {
+  console.log("reach");
+  try {
+    const { token, newPassword } = req.body;
+
+    // Validate inputs
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: 'Token and new password are required' });
+    }
+
+    // Find the user by the reset token and check if the token is still valid
+    const user = await User.findOne({
+      passwordResetToken: crypto.createHash('sha256').update(token).digest('hex'),
+      passwordResetExpires: { $gt: Date.now() }, // Check if the token is expired
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    console.log("Before " + user.password)
+     // Update the user's password directly
+    user.password = newPassword;  // No need to hash manually, the pre-save hook will handle this
+    console.log("after " + user.password)
+    // Clear the reset token and expiration time
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    // Save the user with the new password (the password will be hashed by the pre-save hook)
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successfully' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'An error occurred', error: err.message });
   }
 });
 

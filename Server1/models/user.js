@@ -51,8 +51,16 @@ const userSchema = new mongoose.Schema
         type:String,
         select:false,
        },
-       verificationTokenExpire: Date, // Expiry time for the token
-        
+       verificationTokenExpire: {type:Date, // Expiry time for the token
+       },
+       // Password Reset Fields
+    passwordResetToken: {
+        type: String,
+        select: false, // Don't expose reset token in queries
+      },
+      passwordResetExpires: {
+        type: Date, // Expiry time for the reset token
+      },
         
     },
     {timestamps:true}
@@ -72,7 +80,7 @@ userSchema.methods.generateVerificationToken = function () {
 // this function will be called after create and secondaly after update
 userSchema.pre('save', async function(next)
 {
-    if(!this.isModified('password'))
+    if(!this.isModified('password') )
     {
         return next();
     }
@@ -96,6 +104,17 @@ userSchema.methods.comparePassword = function(password){
     return bcryptjs.compare(password,this.password);
 }
 
+// Method to generate password reset token
+userSchema.methods.getResetPasswordToken = function () {
+    // Generate a reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+  
+    // Hash the token and save it in the user document
+    this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    this.passwordResetExpires = Date.now() + 15 * 60 * 1000; // Token valid for 15 minutes
+  
+    return resetToken;
+  };
 // Create the User model
 const User = mongoose.model('User', userSchema);
 
