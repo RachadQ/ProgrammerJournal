@@ -1,46 +1,64 @@
 
-import React, { useState, useEffect } from "react";
-import "../styles/tags.css";
-import TagsFilterProps from "../interface/TagFIlterProps";
+  import React, { useState, useEffect } from "react";
+ 
+  import TagsFilterProps from "../interface/TagFIlterProps";
 
 
-const TagsFilter: React.FC<TagsFilterProps> = ({ entries, onFilterChange }) => {
+  const TagsFilter: React.FC<TagsFilterProps> = ({ entries, onFilterChange,authenticatedUserId }) => {
+      const [uniqueTags, setUniqueTags] = useState<string[]>([]);
+      const [activeTag, setActiveTag] = useState<string>("All");
     
+      useEffect(() => {
+        // Filter entries for the authenticated user
+        const userEntries = entries.filter((entry) => entry.user === authenticatedUserId);
     
-    const [uniqueTags, setUniqueTags] = useState<string[]>([]);
-    const [activeTag, setActiveTag] = useState<string>("All");
+        // Generate unique tags from the user's journal entries
+        const tagsSet = new Set<string>();
+        userEntries.forEach((entry) => {
+          entry.tags.forEach((tag) => tagsSet.add(tag.name)); // Assuming `tag.name` is the tag's identifier
+        });
+    
+        setUniqueTags(["All", ...Array.from(tagsSet)]);
+      }, [entries, authenticatedUserId]);
+
+      const handleTagClick = (tag: string) => {
+        setActiveTag(tag);
+    
+        if (tag === "All") {
+          // Show all entries for the authenticated user
+          onFilterChange(entries.filter((entry) => entry.user === authenticatedUserId));
+        } else {
+          // Show entries matching the selected tag for the authenticated user
+          onFilterChange(
+            entries.filter(
+              (entry) =>
+                entry.user === authenticatedUserId &&
+                entry.tags.some((entryTag) => entryTag.name === tag)
+            )
+          );
+        }
+      };
   
-    useEffect(() => {
-      // Generate unique tags from journal entries
-      const tagsSet = new Set<string>();
-      entries.forEach((entry) => {
-        entry.tags.forEach((tag) => tagsSet.add(tag));
-      });
-      setUniqueTags(["All", ...Array.from(tagsSet)]);
-    }, [entries]);
-  
-    const handleTagClick = (tag: string) => {
-      setActiveTag(tag);
-      if (tag === "All") {
-        onFilterChange(entries);
-      } else {
-        onFilterChange(entries.filter((entry) => entry.tags.includes(tag)));
-      }
-    };
-  
-    return (
-      <div className="tags-filter">
-        {uniqueTags.map((tag) => (
-          <button
-            key={tag}
-            className={`tag ${activeTag === tag ? "active" : ""}`}
-            onClick={() => handleTagClick(tag)}
-          >
-            {tag}
-          </button>
-        ))}
-      </div>
-    );
+      return (
+        <div className="tags-filter flex justify-center items-center w-full">
+          <div className="flex flex-wrap gap-2 justify-center">
+            {uniqueTags.map((tag) => (
+              <button
+                key={tag}
+                className={`px-4 py-2 rounded-full text-sm font-medium border 
+                  ${
+                    activeTag === tag
+                      ? "bg-blue-500 text-white border-blue-500"
+                      : "bg-gray-200 text-gray-700 border-gray-300"
+                  } hover:bg-blue-500 hover:text-white transition`}
+                onClick={() => handleTagClick(tag)}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
   };
   
   export default TagsFilter;

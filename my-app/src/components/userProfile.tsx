@@ -9,11 +9,9 @@ import Cookies from 'js-cookie';  // Import the js-cookie library
 import '../styles/profile.css';
 import TagsList from "./TagsList";
 import TagsFilter from "./TagsFilter";
+import UserJournalSection from "./UserJournalSection";
 
 
-const TagComponent = ({ info }: { info: { id: string; name: string }  }) => (
-  <span className="bg-gray-300 text-gray-800 px-4 py-2 rounded-full">{info.name}</span>
-);
 
 const UserProfile: React.FC = () => {
   const { username } = useParams<{ username: string }>();
@@ -161,13 +159,10 @@ const UserProfile: React.FC = () => {
           </div>
         </div>
       </section>
-      <section className="tags-section">
-        <h2 className="text-xl font-semibold mt-4">Tags:</h2>
-        <TagsFilter entries={entries} onFilterChange={setFilteredEntries} />
-      </section>
       {/* Journal Entries */}
+      {/*
       <section>
-
+      
         <h2 className="text-xl font-semibold mt-4 text-left mx-auto max-w-xl mb-5">Journal Entries:</h2>
         <NewJournalEntryForm addEntry={handleAddEntry} />
         {entries && entries.length > 0 ? (
@@ -186,6 +181,16 @@ const UserProfile: React.FC = () => {
           {loading && <span>Loading more entries...</span>}
         </div>
       </section>
+*/}
+    <UserJournalSection
+      entries={entries}
+      filteredEntries={filteredEntries}
+      setFilteredEntries={setFilteredEntries}
+      handleAddEntry={handleAddEntry}
+      authenticatedUserId={authenticatedUserId || ''}
+      deleteEntry={deleteEntry}
+      editEntry={editEntry}
+    />
     </div>
   );
 };

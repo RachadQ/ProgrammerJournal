@@ -563,6 +563,7 @@ router.get('/tag/:name', async (req, res) => {
   }
 
 });
+
 router.get('/tags/search', async (req, res) => {
  
   const query = req.query.query || ''; // Get the query from the request
@@ -575,8 +576,6 @@ router.get('/tags/search', async (req, res) => {
 });
 router.post('/tag', async (req, res) => {
   
-
-
   const { name } = req.body; // Assuming the tag's name is sent in the body
 
   if (!name) {

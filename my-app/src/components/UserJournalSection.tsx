@@ -1,7 +1,7 @@
 import React from "react";
 import TagsFilter from "./TagsFilter";
-import NewJournalEntryForm from "./NewJournalEntryForm";
-import JournalEntryList from "./JournalEntryList";
+import NewJournalEntryForm from "./newJournalEntryForm";
+import JournalEntryList from "./journalEntryList";
 import JournalEntryProp from "../interface/JournalEntryProp";
 
 interface UserJournalSectionProps {
@@ -28,7 +28,7 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
       {/* Tags Section */}
       <section className="tags-section">
         <h2 className="text-xl font-semibold mt-4">Tags:</h2>
-        <TagsFilter entries={entries} onFilterChange={setFilteredEntries} />
+        <TagsFilter entries={entries} onFilterChange={setFilteredEntries} authenticatedUserId={authenticatedUserId} />
       </section>
 
       {/* Journal Entries Section */}
