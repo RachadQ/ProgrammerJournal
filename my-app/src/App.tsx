@@ -9,6 +9,7 @@ import SignUp from './components/SignUp';
 import EmailVerification from "./components/EmailVerification";
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import BaseLayout from './components/Default/BaseLayout';
 function App() {
 
   const profileData = {
@@ -20,6 +21,7 @@ function App() {
   return (
     <div className="App">
       <Router>
+      <BaseLayout>
         <Routes>
           {/*<UserProfile profile={profileData} />*/}
           <Route path="/"  element={<HomePage/>} />
@@ -33,6 +35,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
         </Routes>
+        </BaseLayout>
        </Router>
     </div>
   );
