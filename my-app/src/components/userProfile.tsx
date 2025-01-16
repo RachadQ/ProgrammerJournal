@@ -136,52 +136,33 @@ const UserProfile: React.FC = () => {
 
   return (
     <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-4">
-      <section className="py-6 md:py-2">
-        <div className="container max-w-screen-xl mx-auto px-4">
-          <nav className="flex items-center justify-between mb-8 md:mb-16">
-            <div className="px-5 py-2 md:px-7 md:py-3 bg-white font-medium md:font-semibold text-gray-700 text-sm md:text-md rounded-md hover:bg-gray-700 hover:text-white transition ease-linear duration-500">
-              <button id="downloadBtn" onClick={downloadResume} value="download">
-                Get my CV
-              </button>
-            </div>
-          </nav>
-          <div className="text-center">
-            <div className="flex justify-center mb-2 md:mb-2">
-              <img
-                src={`https://www.bing.com/th?id=OIP.42gCaIWoZnhhRiZ7BzQXjQHaHa&w=174&h=185&c=8&rs=1&qlt=90&o=6&dpr=1.3&pid=3.1&rm=2`}
-                alt="Profile Picture"
-                className="w-32 h-32 md:w-48 md:h-48 rounded-full"
-              />
-            </div>
-            <h6 className="font-medium text-gray-600 text-lg md:text-2xl uppercase mb-0 md:mb-0">
-              {profile.firstName} {profile.lastName}
-            </h6>
-          </div>
+  {/* User Profile Section */}
+  <section className="py-6 md:py-2 bg-white rounded-lg shadow-md mb-3">
+    <div className="container max-w-screen-xl mx-auto px-4">
+      <nav className="flex items-center justify-between mb-8 md:mb-16">
+        <div className="px-5 py-2 md:px-7 md:py-3 bg-white font-medium md:font-semibold text-gray-700 text-sm md:text-md rounded-md hover:bg-gray-700 hover:text-white transition ease-linear duration-500">
+          <button id="downloadBtn" onClick={downloadResume} value="download">
+            Get my CV
+          </button>
         </div>
-      </section>
-      {/* Journal Entries */}
-      {/*
-      <section>
-      
-        <h2 className="text-xl font-semibold mt-4 text-left mx-auto max-w-xl mb-5">Journal Entries:</h2>
-        <NewJournalEntryForm addEntry={handleAddEntry} />
-        {entries && entries.length > 0 ? (
-          <div className="space-y-4">
-            <JournalEntryList
-              entries={entries}
-              userId={authenticatedUserId || userId} // Use authenticatedUserId or userId
-              onDelete={deleteEntry}
-              onEdit={editEntry}
-            />
-          </div>
-        ) : (
-          <div className="p-6 text-gray-500 text-center">No entries yet. Start by adding a new journal entry!</div>
-        )}
-        <div ref={loaderRef} className="loading-more text-center py-4">
-          {loading && <span>Loading more entries...</span>}
+      </nav>
+      <div className="text-center">
+        <div className="flex justify-center mb-2 md:mb-2">
+          <img
+            src={`https://www.bing.com/th?id=OIP.42gCaIWoZnhhRiZ7BzQXjQHaHa&w=174&h=185&c=8&rs=1&qlt=90&o=6&dpr=1.3&pid=3.1&rm=2`}
+            alt="Profile Picture"
+            className="w-32 h-32 md:w-48 md:h-48 rounded-full"
+          />
         </div>
-      </section>
-*/}
+        <h6 className="font-medium text-gray-600 text-lg md:text-2xl uppercase mb-0 md:mb-0">
+          {profile.firstName} {profile.lastName}
+        </h6>
+      </div>
+    </div>
+  </section>
+
+  {/* Journal Entries Section */}
+  <section className="py-6 md:py-4 mb-3">
     <UserJournalSection
       entries={entries}
       filteredEntries={filteredEntries}
@@ -191,7 +172,10 @@ const UserProfile: React.FC = () => {
       deleteEntry={deleteEntry}
       editEntry={editEntry}
     />
-    </div>
+  </section>
+</div>
+
+    
   );
 };
 

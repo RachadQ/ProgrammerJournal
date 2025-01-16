@@ -27,13 +27,13 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
     <div className="user-journal-section bg-gray-100 p-4 rounded-lg shadow-md">
       {/* Tags Section */}
       <section className="tags-section">
-        <h2 className="text-xl font-semibold mt-4">Tags:</h2>
+        <h2 className="text-xl font-semibold mb-3 ">See Journal Entries with:</h2>
         <TagsFilter entries={entries} onFilterChange={setFilteredEntries} authenticatedUserId={authenticatedUserId} />
       </section>
 
       {/* Journal Entries Section */}
       <section className="journal-section">
-        <h2 className="text-xl font-semibold mt-4">Journal Entries:</h2>
+        
         <NewJournalEntryForm addEntry={handleAddEntry} />
         {filteredEntries.length > 0 ? (
           <div className="space-y-4 mt-4">

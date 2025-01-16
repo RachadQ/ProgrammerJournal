@@ -617,6 +617,24 @@ router.post('/logout', authenticateToken, (req, res) => {
   }
 });
 
+//Delete journal entry
+router.delete('/delete/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find and delete the journal entry by its ID
+    const deletedEntry = await Entry.findByIdAndDelete(id);
+
+    if (!deletedEntry) {
+      return res.status(404).json({ message: 'Entry not found' });
+    }
+
+    return res.status(200).json({ message: 'Entry deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+})
 router.get('/tag/:name', async (req, res) => {
   const tag = await Tag.findOne({ name: req.params.name });
   if (tag) {
@@ -701,6 +719,41 @@ router.post('/reset-password', async (req, res) => {
 });
 
 
+//Route to edit an existing journal entry
+router.put("/edit/:id", async (req,res) =>
+{
+  console.log("Reach");
+  const { id } = req.params;
+  const { title, content, tags } = req.body;
+
+  try {
+    const entry = await Entry.findById(id);
+
+    if (!entry) {
+      return res.status(404).json({ message: "Journal entry not found" });
+    }
+
+    // Check if the user is authorized to edit the entry
+    if (entry.userId !== req.body.userId) {
+      return res.status(403).json({ message: "You are not authorized to edit this entry" });
+    }
+
+    // Update the entry
+    entry.title = title || entry.title;
+    entry.content = content || entry.content;
+    entry.tags = tags || entry.tags;
+    entry.updatedAt = new Date();
+
+    await entry.save();
+
+    res.status(200).json(entry);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error updating journal entry" });
+  }
+}
+
+)
 
 // Add this route to handle token refresh
 router.post('/refresh-token', async (req, res) => {
