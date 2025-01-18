@@ -724,35 +724,40 @@ router.put("/edit/:id", async (req,res) =>
 {
   console.log("Reach");
   const { id } = req.params;
-  const { title, content, tags } = req.body;
+  const { title, content, tags,userId } = req.body;
 
   try {
-    const entry = await Entry.findById(id);
+    // Validate tags format
+    if (tags && (!Array.isArray(tags) || !tags.every((tag) => typeof tag === "string"))) {
+      return res.status(400).json({ message: "Invalid tags format. Tags must be an array of strings." });
+    }
 
+    // Find the journal entry
+    const entry = await Entry.findById(id);
     if (!entry) {
       return res.status(404).json({ message: "Journal entry not found" });
     }
 
-    // Check if the user is authorized to edit the entry
-    if (entry.userId !== req.body.userId) {
+    // Check user authorization
+    if (entry.userId !== userId) {
       return res.status(403).json({ message: "You are not authorized to edit this entry" });
     }
 
-    // Update the entry
+    // Update entry fields
     entry.title = title || entry.title;
     entry.content = content || entry.content;
-    entry.tags = tags || entry.tags;
+    entry.tags = tags ? tags.map((tag) => tag._id || tag) : entry.tags;
     entry.updatedAt = new Date();
 
+    // Save the updated entry
     await entry.save();
 
-    res.status(200).json(entry);
+    res.status(200).json({ message: "Journal entry updated successfully", entry });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error updating journal entry" });
+    console.error("Error updating journal entry:", err.message);
+    res.status(500).json({ message: "Error updating journal entry", error: err.message });
   }
 }
-
 )
 
 // Add this route to handle token refresh

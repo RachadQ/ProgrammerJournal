@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import JournalEntryProp from '../interface/JournalEntryProp';
 import { TagProp } from '../interface/TagProp';
+import axios from 'axios';
 
 interface EditJournalEntryFormProps {
   initialValues?: {
@@ -28,16 +29,75 @@ const EditJournalEntryForm: React.FC<EditJournalEntryFormProps> = ({ initialValu
     updatedAt: initialValues?.updatedAt || '', // Set updatedAt as needed
   });
 
-  const handleChange = (field: string, value: string | string[]) => {
-    setEntry({
-      ...entry,
-      [field]: value,
-    });
+  const [query, setQuery] = useState('');
+  const [tags, setTags] = useState<TagProp[]>(initialValues?.tags || []);
+  const [tagSuggestions, setTagSuggestions] = useState<TagProp[]>([]);
+
+  // Synchronize tags with the entry object
+  useEffect(() => {
+    if (tags !== entry.tags) {
+      setEntry((prevEntry) => ({ ...prevEntry, tags }));
+    }
+  }, [tags, entry.tags]);
+  const fetchTagSuggestions = async (query: string) => {
+    try {
+      const response = await axios.get(`http://localhost:3001/tags/search?query=${query}`);
+      setTagSuggestions(response.data || []);
+    } catch (error) {
+      console.error('Error fetching tag suggestions:', error);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuery = e.target.value.trim();
+    setQuery(newQuery);
+
+    if (newQuery) {
+      fetchTagSuggestions(newQuery);
+    } else {
+      setTagSuggestions([]);
+    }
+  };
+
+  const handleAddTag = (tag: TagProp) => {
+    if (!tags.find((t) => t._id === tag._id)) {
+      setTags((prevTags) => [...prevTags, tag]);
+    }
+    setQuery('');
+    setTagSuggestions([]);
+  };
+
+  const handleRemoveTag = (tagId: string) => {
+    setTags((prevTags) => prevTags.filter((tag) => tag._id !== tagId));
+  };
+
+  const handleChange = (field: string, value: string | string[]) => {
+    setEntry((prevEntry) => ({ ...prevEntry, [field]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(entry);
+
+    // Validate required fields
+    if (!entry.title.trim() || !entry.content.trim()) {
+      alert("Title and content are required.");
+      return;
+    }
+  
+    try {
+      const response = await axios.put(`http://localhost:3001/edit/${entry._id}`, {
+        title: entry.title,
+        content: entry.content,
+        tags: tags.map((tag) => tag._id || tag.name), // Send tag IDs or names as required
+        userId: entry.user, // Ensure user ID is sent if needed
+      });
+  
+      console.log("Journal entry updated successfully:", response.data);
+      onSubmit(response.data.entry); // Notify parent component of successful submission
+    } catch (err) {
+      console.error("Error updating journal entry:", err);
+      alert("Error updating journal entry: " +  err);
+    }
   };
 
   return (
@@ -58,13 +118,49 @@ const EditJournalEntryForm: React.FC<EditJournalEntryFormProps> = ({ initialValu
         placeholder="Content"
         className="mt-4 text-lg text-gray-700 w-full p-2 border rounded"
       />
-      <input
-        type="text"
-        value={entry.tags.join(', ')}
-        onChange={(e) => handleChange('tags', e.target.value.split(', '))}
-        placeholder="Tags (comma-separated)"
-        className="mt-2 p-2 w-full border rounded"
-      />
+      <div className="mt-4">
+        <label htmlFor="tags" className="block font-semibold">
+          Tags:
+        </label>
+        <input
+          type="text"
+          id="tags"
+          value={query}
+          onChange={handleTagChange}
+          placeholder="Type to search for tags"
+          className="w-full p-2 border rounded"
+        />
+        {tagSuggestions.length > 0 && (
+          <ul className="border rounded mt-2">
+            {tagSuggestions.map((tag) => (
+              <li
+                key={tag._id}
+                onClick={() => handleAddTag(tag)}
+                className="p-2 cursor-pointer hover:bg-gray-200"
+              >
+                {tag.name}
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex flex-wrap mt-2">
+          {tags.map((tag) => (
+            <span
+              key={tag._id}
+              className="bg-blue-500 text-white py-1 px-3 rounded-full m-1 flex items-center"
+            >
+              {tag.name}
+              <button
+                type="button"
+                onClick={() => handleRemoveTag(tag._id)}
+                className="ml-2 text-white font-bold hover:text-gray-800"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      </div>
       <div className="mt-4 flex justify-center space-x-4">
         <button
           type="submit"
@@ -83,5 +179,8 @@ const EditJournalEntryForm: React.FC<EditJournalEntryFormProps> = ({ initialValu
     </form>
   );
 };
+
+  
+
 
 export default EditJournalEntryForm;
