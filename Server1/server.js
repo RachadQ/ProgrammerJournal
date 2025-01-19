@@ -680,7 +680,7 @@ router.post('/tag', async (req, res) => {
 
 // Reset password route
 router.post('/reset-password', async (req, res) => {
-  console.log("reach");
+  
   try {
     const { token, newPassword } = req.body;
 
@@ -720,7 +720,7 @@ router.post('/reset-password', async (req, res) => {
 
 
 //Route to edit an existing journal entry
-router.put("/edit/:id", async (req,res) =>
+router.put("/edit/:id",authenticateToken, async (req,res) =>
 {
   console.log("Reach");
   const { id } = req.params;
@@ -732,23 +732,43 @@ router.put("/edit/:id", async (req,res) =>
       return res.status(400).json({ message: "Invalid tags format. Tags must be an array of strings." });
     }
 
+    // Resolve tag names to _id
+    const tagIds = await Promise.all(
+      tags.map(async (tagName) => {
+        const tagNameTrimmed = tagName.trim();
+        let tag = await Tag.findOne({ name: tagNameTrimmed });
+        if (!tag) {
+          tag = await Tag.create({ name: tagNameTrimmed });
+        }
+        return tag._id;
+      })
+    );
+
+
     // Find the journal entry
     const entry = await Entry.findById(id);
+    console.log("entry1:" +  entry);
     if (!entry) {
       return res.status(404).json({ message: "Journal entry not found" });
     }
-
+   
+    console.log("Users " + entry.user + "  " + req.user.id );
     // Check user authorization
-    if (entry.userId !== userId) {
+    if (String(entry.user) !== String(req.user.id)) {
       return res.status(403).json({ message: "You are not authorized to edit this entry" });
     }
 
+    console.log("Reach");
+    console.log("entry1:" +  entry);
+    
     // Update entry fields
     entry.title = title || entry.title;
+   
     entry.content = content || entry.content;
-    entry.tags = tags ? tags.map((tag) => tag._id || tag) : entry.tags;
+    entry.tags = tagIds;
     entry.updatedAt = new Date();
-
+    console.log("entry 2 reach:" +  entry);
+   
     // Save the updated entry
     await entry.save();
 

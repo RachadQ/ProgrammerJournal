@@ -10,9 +10,9 @@ const JournalEntry: React.FC<JournalEntryProps> = ({entry,userId,onDelete,onEdit
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   
-  console.log("entry.userId:", entry._id);
-  console.log("userId:", userId);
-  console.log("entry:", entry);
+  //console.log("entry.userId:", entry.user);
+  //console.log("userId:", userId);
+  //console.log("entry:", entry);
   const isOwner = entry.user === userId;
   
   const handleDeleteEntry = async (entryId: string) => {
@@ -57,6 +57,9 @@ const handleEditEntry = async (updatedEntry: typeof entry) => {
             title: entry.title,
             content: entry.content,
             tags: entry.tags, // Map tags to string array
+            user: entry.user,
+            createdAt: entry.createdAt,
+            updatedAt: entry.updatedAt
           }}
           onSubmit={handleEditEntry} // No need to map
           onCancel={() => setIsEditing(false)} // Close editing form when cancel is pressed

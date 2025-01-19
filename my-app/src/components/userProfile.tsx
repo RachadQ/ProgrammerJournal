@@ -119,7 +119,10 @@ const UserProfile: React.FC = () => {
 
   const editEntry = (entry: JournalEntryProp) => {
     setEntries((prevEntries) =>
-      prevEntries.map((e) => (e._id === entry._id ? entry : e))
+     
+      prevEntries.map((e) => (e._id === entry._id ? entry : e
+        
+      ))
     );
   };
 

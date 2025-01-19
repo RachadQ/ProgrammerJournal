@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import JournalEntryProp from '../interface/JournalEntryProp';
 import { TagProp } from '../interface/TagProp';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 interface EditJournalEntryFormProps {
   initialValues?: {
-    _id?: string;
+    _id: string;
     title: string;
     content: string;
     tags: TagProp[];
-    userId?: string;
+    user?: string;
     entry?: any;
     createdAt?: string;
     updatedAt?: string;
@@ -24,17 +24,29 @@ const EditJournalEntryForm: React.FC<EditJournalEntryFormProps> = ({ initialValu
     title: initialValues?.title || '',
     content: initialValues?.content || '',
     tags: initialValues?.tags || [],
-    user: initialValues?.userId || '', // Ensure user is defined
+    user: initialValues?.user || '', // Ensure user is defined
     createdAt: initialValues?.createdAt || '', // Set createdAt as needed
     updatedAt: initialValues?.updatedAt || '', // Set updatedAt as needed
   });
 
+  function getCookie(name: string): string | null {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop()?.split(';').shift() ?? null; // Return null if no token found
+    }
+    return null;
+  }
+
+  const [token, setToken] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [tags, setTags] = useState<TagProp[]>(initialValues?.tags || []);
   const [tagSuggestions, setTagSuggestions] = useState<TagProp[]>([]);
-
+  console.log("this is " + JSON.stringify(entry, null, 2))
+  
   // Synchronize tags with the entry object
   useEffect(() => {
+    
     if (tags !== entry.tags) {
       setEntry((prevEntry) => ({ ...prevEntry, tags }));
     }
@@ -77,26 +89,51 @@ const EditJournalEntryForm: React.FC<EditJournalEntryFormProps> = ({ initialValu
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    const storedToken = getCookie('authToken'); // Get the token from cookies
+    
+    if (storedToken) {
     // Validate required fields
     if (!entry.title.trim() || !entry.content.trim()) {
       alert("Title and content are required.");
       return;
     }
-  
+  console.log(entry)
     try {
       const response = await axios.put(`http://localhost:3001/edit/${entry._id}`, {
         title: entry.title,
         content: entry.content,
-        tags: tags.map((tag) => tag._id || tag.name), // Send tag IDs or names as required
-        userId: entry.user, // Ensure user ID is sent if needed
-      });
-  
+        tags: tags.map((tag) => tag.name), // Send only tag names
+        updatedAt: entry.updatedAt,
+        user: entry.user, // Ensure user ID is sent if needed
+        
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${storedToken}` // Use the token in the Authorization header
+        }
+      }
+    
+    );
+  console.log(response.data);
       console.log("Journal entry updated successfully:", response.data);
       onSubmit(response.data.entry); // Notify parent component of successful submission
     } catch (err) {
-      console.error("Error updating journal entry:", err);
-      alert("Error updating journal entry: " +  err);
+      if (axios.isAxiosError(err)) {  // Check if it's an Axios error
+        const axiosError = err as AxiosError; // Cast to AxiosError
+        if (axiosError.response) {
+          // If the response exists, log and display the error
+          console.error("Error updating journal entry:", axiosError.response.data);
+          //alert("Error updating journal entry: " + axiosError.response.data.message);
+        } else {
+          console.error("Axios error with no response:", axiosError.message);
+          alert("Error updating journal entry: " + axiosError.message);
+        }
+      } else {
+        // In case the error is not an Axios error
+        console.error("Unexpected error:", err);
+        alert("Unexpected error occurred. Please try again.");
+      }
+    }
     }
   };
 
@@ -184,3 +221,5 @@ const EditJournalEntryForm: React.FC<EditJournalEntryFormProps> = ({ initialValu
 
 
 export default EditJournalEntryForm;
+
+

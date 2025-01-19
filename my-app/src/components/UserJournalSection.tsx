@@ -23,6 +23,8 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
   deleteEntry,
   editEntry,
 }) => {
+
+  console.log(entries);
   return (
     <div className="user-journal-section bg-gray-100 p-4 rounded-lg shadow-md">
       {/* Tags Section */}
