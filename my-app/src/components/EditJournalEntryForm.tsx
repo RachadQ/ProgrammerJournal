@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import JournalEntryProp from '../interface/JournalEntryProp';
 import { TagProp } from '../interface/TagProp';
+import Cookies from 'js-cookie';
 import axios, { AxiosError } from 'axios';
 
 interface EditJournalEntryFormProps {
@@ -89,15 +90,27 @@ const EditJournalEntryForm: React.FC<EditJournalEntryFormProps> = ({ initialValu
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const storedToken = getCookie('authToken'); // Get the token from cookies
+    let storedToken = getCookie('authToken'); // Get the token from cookies
+  //  console.log("Authorization Token:", storedToken);
+    const refreshToken = getCookie('refreshToken');
+    console.log("refreshing " +  refreshToken);
+    console.log("token " +  token);
+    // Refresh the token if it doesn't exist
+    if (!storedToken && refreshToken) {
     
+      const tokenResponse = await axios.post('http://localhost:3001/refresh-token', { refreshToken });
+      storedToken = tokenResponse.data.accessToken;
+      console.log("This stored: " + JSON.stringify(storedToken));
+      setToken(storedToken)
+      Cookies.set('authToken', storedToken);
+    }
     if (storedToken) {
     // Validate required fields
     if (!entry.title.trim() || !entry.content.trim()) {
       alert("Title and content are required.");
       return;
     }
-  console.log(entry)
+  console.log("this is the entry" + entry)
     try {
       const response = await axios.put(`http://localhost:3001/edit/${entry._id}`, {
         title: entry.title,

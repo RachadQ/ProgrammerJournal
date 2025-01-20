@@ -14,7 +14,6 @@ export interface Entry {
 
   export interface ProfileWithEntriesResponse {
     id: string;
-    entries: any;
     username: string;
     firstName: string;
     lastName: string;
@@ -22,5 +21,7 @@ export interface Entry {
     profilePicture?: string;
     journalEntries: JournalEntryProp[];
     totalEntries;
+    createdAt;
+    updatedAt;
   }
   

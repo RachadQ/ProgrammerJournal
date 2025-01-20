@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import React, { useState, useEffect } from 'react';
 import  JournalEntryProp  from '../interface/JournalEntryProp';
 import { TagProp } from '../interface/TagProp';
-
+import Cookies from 'js-cookie';
 interface NewJournalEntryFormProps {
   addEntry: (newEntry: JournalEntryProp) => void;
 }
@@ -31,43 +31,50 @@ interface NewJournalEntryFormProps {
 
   
   useEffect(() => {
-    
-    const storedToken = getCookie('authToken'); // Get the token from cookies
-    if (storedToken) {
-      // Set the token in state
-      setToken(storedToken);
-      
-      // Send the token to the backend to get user information
-      const fetchUserInfo = async () => {
-        
-        try {
+    // Function to fetch user information
+    const fetchUserInfo = async () => {
+      try {
+        let storedToken = Cookies.get('authToken'); // Get the token from cookies
+        const refreshToken = Cookies.get('refreshToken');
+        console.log(refreshToken);
+        // Refresh the token if it doesn't exist or has expired
+        if (!storedToken && refreshToken) {
+          console.log(storedToken);
+          const tokenResponse = await axios.post('http://localhost:3001/refresh-token', { refreshToken });
          
-          const response = await fetch('http://localhost:3001/user-info', {
-            method: 'GET',
+          storedToken = tokenResponse.data.accessToken;
+          
+       
+        }
+  
+        if (storedToken) {
+          // Set the token in state
+          setToken(storedToken);
+  
+          // Fetch user information
+          const response = await axios.get('http://localhost:3001/user-info', {
             headers: {
-              'Authorization': `Bearer ${storedToken}`, // Send the token in the Authorization header
+              Authorization: `Bearer ${storedToken}`, // Include token in Authorization header
             },
           });
-          
-          
-          if (!response.ok) {
-            throw new Error('Failed to authenticate');
+  
+          if (response.status === 200) {
+            const { _id } = response.data; // Assuming `_id` is the userId field in the response
+            console.log("this is the data" + response.data)
+            setUserId(_id); // Store userId in state
+          } else {
+            throw new Error('Failed to fetch user information');
           }
-
-          const data = await response.json();
-        
-          const { _id } = data;  // Assuming the userId is in the response body
-          
-          setUserId(_id);  // Store the userId in the state
-        } catch (error) {
-          console.error("Error fetching user info:", error);
+        } else {
+          console.error('No authentication token found');
         }
-      };
-
-      fetchUserInfo();  // Call the function to fetch user data from the server
-    } else {
-      console.error("No authentication token found");
-    }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    };
+  
+    // Call the function
+    fetchUserInfo();
   }, []);
   
     const handleSubmit = async (e: React.FormEvent) => {

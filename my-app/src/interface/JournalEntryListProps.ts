@@ -5,7 +5,7 @@ export default interface JournalEntryListProps {
     userId: string | undefined;
     onDelete: (entryId: string) => void;
     onEdit: (entry: JournalEntryProp) => void;
-    
+    isOwner: boolean;
 
   }
   

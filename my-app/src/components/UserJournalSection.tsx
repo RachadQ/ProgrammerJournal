@@ -12,6 +12,7 @@ interface UserJournalSectionProps {
   authenticatedUserId: string; // New prop for user ID
   deleteEntry: (entryId: string) => void;
   editEntry: (updatedEntry: JournalEntryProp) => void;
+  profileUserId: string;
 }
 
 const UserJournalSection: React.FC<UserJournalSectionProps> = ({
@@ -22,15 +23,18 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
   authenticatedUserId,
   deleteEntry,
   editEntry,
+  profileUserId,
 }) => {
 
-  console.log(entries);
+  const isOwner = authenticatedUserId === profileUserId;
+  console.log("viewr: " + JSON.stringify(authenticatedUserId, null, 2));
+  console.log("profile user: " + JSON.stringify(profileUserId, null, 2));
   return (
     <div className="user-journal-section bg-gray-100 p-4 rounded-lg shadow-md">
       {/* Tags Section */}
       <section className="tags-section">
         <h2 className="text-xl font-semibold mb-3 ">See Journal Entries with:</h2>
-        <TagsFilter entries={entries} onFilterChange={setFilteredEntries} authenticatedUserId={authenticatedUserId} />
+        <TagsFilter entries={entries} onFilterChange={setFilteredEntries} authenticatedUserId={profileUserId} />
       </section>
 
       {/* Journal Entries Section */}
@@ -44,6 +48,7 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
               userId={authenticatedUserId} // Pass authenticated user ID
               onDelete={deleteEntry} // Pass delete function
               onEdit={editEntry} // Pass edit function
+              isOwner={isOwner}
             />
           </div>
         ) : (

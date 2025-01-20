@@ -61,6 +61,16 @@ const userSchema = new mongoose.Schema
       passwordResetExpires: {
         type: Date, // Expiry time for the reset token
       },
+
+      // Session Token Field
+    sessionToken: {
+        type: String,
+        select: false, // Prevent exposing session token in queries
+        default: null, // Initially, the session token is null
+      },
+      sessionTokenExpire: {
+        type: Date, // Expiry time for the session token
+      },
         
     },
     {timestamps:true}
@@ -77,6 +87,25 @@ userSchema.methods.generateVerificationToken = function () {
     // Return the token
     return token;
   };
+
+  // Method to generate the session token
+userSchema.methods.generateSessionToken = function () {
+    // Create a unique session token using crypto
+    const token = crypto.randomBytes(32).toString('hex');
+  
+    // Set session token and expiration time
+    this.sessionToken = token;
+    this.sessionTokenExpire = Date.now() + 30 * 60 * 1000; // Token expires in 30 minutes
+  
+    // Return the token
+    return token;
+  };
+  
+  // Method to validate the session token
+  userSchema.methods.isSessionValid = function (token) {
+    return this.sessionToken === token && this.sessionTokenExpire > Date.now();
+  };
+  
 // this function will be called after create and secondaly after update
 userSchema.pre('save', async function(next)
 {

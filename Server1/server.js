@@ -478,6 +478,11 @@ router.post('/login',async (req,res) =>
     }
    
 
+     // Generate session token
+     const sessionToken = user.generateSessionToken();
+
+     // Save session token to the user document
+    await user.save();
     // Generate JWT token with redirectUrl in the payload
   const redirectUrl = `/user/${user.username}`;
   if (!redirectUrl) {
@@ -537,6 +542,7 @@ router.post('/login',async (req,res) =>
       token, // Send the JWT token to the client
       refreshToken,
       redirectUrl,
+      sessionToken,
     });
   }
   catch(err)

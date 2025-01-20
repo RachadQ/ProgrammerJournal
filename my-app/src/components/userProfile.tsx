@@ -26,8 +26,10 @@ const UserProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const [authenticatedUserId, setAuthenticatedUserId] = useState<string | null>(null);
   const [filteredEntries, setFilteredEntries] = useState<JournalEntryProp[]>(entries);
+  const [PagerUserID, setPagerUserID] = useState<string | null>(null);
 
 
+  
        // Function to get cookie value by name
        const getCookie = (name: string): string | null => {
         const value = `; ${document.cookie}`;
@@ -36,7 +38,6 @@ const UserProfile: React.FC = () => {
         return null;
       };
 
-      
   useEffect(() => {
     const fetchProfile = async (page: number) => {
       setLoading(true);
@@ -49,27 +50,42 @@ const UserProfile: React.FC = () => {
           const newToken = tokenResponse.data.token;
           Cookies.set('authToken', newToken);
         }
-
+        console.log("Response token Data:", JSON.stringify(token, null, 2));
+        // Fetch user information
+        const userInfoResponse = await axios.get('http://localhost:3001/user-info', {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include token in Authorization header
+          },
+        });
+        const { _id } = userInfoResponse.data;
+        setAuthenticatedUserId(_id);
         const response = await axios.get<ProfileWithEntriesResponse>(`http://localhost:3001/user/${username}`, {
           headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
           params: { page, limit: 5 },
           withCredentials: true,
         });
+        console.log("Response Data:", JSON.stringify(response.data, null, 2));
        
-        setAuthenticatedUserId(response.data.id);
+      
+
         setProfile(response.data);
-        
+       
          // Filter out any duplicate entries based on the _id
     setEntries(prevEntries => {
       const existingEntryIds = prevEntries.map(entry => entry._id);
-      const newEntries = response.data.journalEntries.filter(entry => !existingEntryIds.includes(entry._id));
-      return [...prevEntries, ...newEntries];
+  const newEntries = response.data.journalEntries.filter(entry => !existingEntryIds.includes(entry._id));
+  return [...prevEntries, ...newEntries];
     });
-        setTotalEntries(response.data.totalEntries);
+
+   
+        setPagerUserID(response.data.totalEntries);
         // Check if more entries are available
-        if (entries.length >= response.data.totalEntries) {
-          setHasMoreEntries(false); // Stop fetching when all entries are loaded
-        }
+        // Check if there are more entries
+if (response.data.journalEntries.length === 0 || entries.length + response.data.journalEntries.length >= response.data.totalEntries) {
+  setHasMoreEntries(false);
+} else {
+  setHasMoreEntries(true);
+}
       } catch (err: any) {
         console.error('Error fetching profile:', err);
       } finally {
@@ -84,26 +100,26 @@ const UserProfile: React.FC = () => {
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && entries[0].intersectionRatio > 0) {
-          if (!loading && hasMoreEntries ) {
-            setPage(prevPage => prevPage + 1);
-          }
+      ([entry]) => {
+        if (entry.isIntersecting && hasMoreEntries && !loading) {
+          setPage((prevPage) => prevPage + 1);
         }
       },
       { threshold: 1.0 }
     );
-
+  
     if (loaderRef.current) {
       observer.observe(loaderRef.current);
     }
-
+  
     return () => {
       if (loaderRef.current) {
         observer.unobserve(loaderRef.current);
       }
     };
-  }, [loading, totalEntries]);
+  }, [hasMoreEntries, loading]);
+
+  
 
   if (error) {
     return <div className="p-6 text-red-500">{error}</div>;
@@ -126,7 +142,7 @@ const UserProfile: React.FC = () => {
     );
   };
 
-
+  console.log("This is the authent" + authenticatedUserId);
   const downloadResume = async () => {
     const googleDriveLink = "https://drive.google.com/uc?export=download&id=1UsBGAJXyWdA9WQxzJeGj85fsSDKZFEVI";
     window.location.href = googleDriveLink;
@@ -174,6 +190,8 @@ const UserProfile: React.FC = () => {
       authenticatedUserId={authenticatedUserId || ''}
       deleteEntry={deleteEntry}
       editEntry={editEntry}
+      profileUserId={profile.id}
+    
     />
   </section>
 </div>
