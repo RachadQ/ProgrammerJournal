@@ -145,6 +145,8 @@ interface NewJournalEntryFormProps {
     const handleTagChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const newQuery = e.target.value;
       setQuery(newQuery);
+
+      
     
       // Filter out duplicates from the current tags
       const uniqueTags = newQuery
@@ -172,6 +174,8 @@ interface NewJournalEntryFormProps {
     if (!tags.some((existingTag) => existingTag.name.toLowerCase() === tag.name.toLowerCase())) {
       setTags((prevTags) => [...prevTags, tag]);
     }
+    setQuery(''); // Clear the query input
+  setTagSuggestions([]); // Clear the suggestions
   };
 
   const handleRemoveTag = (tagId: string) => {
@@ -184,7 +188,7 @@ interface NewJournalEntryFormProps {
     <div className="relative flex justify-center items-center min-h-[10vh] bg-gray-100">
       <button
         className="flex items-center bg-white text-gray-500 font-medium py-2 px-4 rounded-full shadow hover:bg-gray-100 transition duration-300 ease-in-out"
-        onClick={handleOpen}
+        onClick={() => setIsOpen(true)}
       >
         <span className="text-left">Start a post</span>
       </button>
@@ -193,6 +197,7 @@ interface NewJournalEntryFormProps {
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
             <h2 className="text-xl font-bold mb-4 text-center">Create a Post</h2>
             <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+              {/* Title Input */}
               <div className="flex flex-col space-y-2">
                 <label className="text-sm font-semibold">Title:</label>
                 <input
@@ -202,6 +207,8 @@ interface NewJournalEntryFormProps {
                   className="w-full p-2 border border-gray-300 rounded-lg"
                 />
               </div>
+
+              {/* Content Input */}
               <div className="flex flex-col space-y-2">
                 <label className="text-sm font-semibold">Content:</label>
                 <textarea
@@ -210,14 +217,18 @@ interface NewJournalEntryFormProps {
                   className="w-full p-2 border border-gray-300 rounded-lg"
                 />
               </div>
-              <div className="flex flex-col space-y-2">
+
+              {/* Tags Input */}
+              <div className="flex flex-col space-y-2 relative">
                 <label className="text-sm font-semibold">Tags (comma-separated):</label>
                 <input
                   type="text"
-                  value={query} // Controlled input for query
+                  value={query}
                   onChange={handleTagChange}
                   className="w-full p-2 border border-gray-300 rounded-lg"
                 />
+
+                {/* Selected Tags */}
                 <div className="flex flex-wrap gap-2 mt-2">
                   {tags.map((tag) => (
                     <span
@@ -235,20 +246,24 @@ interface NewJournalEntryFormProps {
                     </span>
                   ))}
                 </div>
+
+                {/* Floating Tag Suggestions Dropdown */}
                 {tagSuggestions.length > 0 && (
-                 <ul className="bg-white border border-gray-300 rounded-lg mt-2">
-                  {tagSuggestions.map((tag) => (
-                    <li
-                      key={tag._id}
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => handleAddTag(tag)} // Add tag to the selected tags list
-                    >
-                      {tag.name}
-                    </li>
-                  ))}
-                </ul>
+                  <ul className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                    {tagSuggestions.map((tag) => (
+                      <li
+                        key={tag._id}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleAddTag(tag)}
+                      >
+                        {tag.name}
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
+
+              {/* Submit and Cancel Buttons */}
               <button
                 type="submit"
                 className="w-full bg-blue-500 text-white py-2 rounded-lg mt-4 hover:bg-blue-600 transition"

@@ -155,31 +155,32 @@ const EditJournalEntryForm: React.FC<EditJournalEntryFormProps> = ({ initialValu
         placeholder="Content"
         className="mt-4 text-lg text-gray-700 w-full p-2 border rounded"
       />
-      <div className="mt-4">
-        <label htmlFor="tags" className="block font-semibold">
-          Tags:
-        </label>
-        <input
-          type="text"
-          id="tags"
-          value={query}
-          onChange={handleTagChange}
-          placeholder="Type to search for tags"
-          className="w-full p-2 border rounded"
-        />
-        {tagSuggestions.length > 0 && (
-          <ul className="border rounded mt-2">
-            {tagSuggestions.map((tag) => (
-              <li
-                key={tag._id}
-                onClick={() => handleAddTag(tag)}
-                className="p-2 cursor-pointer hover:bg-gray-200"
-              >
-                {tag.name}
-              </li>
-            ))}
-          </ul>
-        )}
+       <div className="mt-4 relative">
+      <label htmlFor="tags" className="block font-semibold">
+        Tags:
+      </label>
+      <input
+        type="text"
+        id="tags"
+        value={query}
+        onChange={handleTagChange}
+        placeholder="Type to search for tags"
+        className="w-full p-2 border rounded"
+      />
+      {/* Floating tag suggestions dropdown */}
+      {tagSuggestions.length > 0 && (
+        <div className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+          {tagSuggestions.map((tag) => (
+            <div
+              key={tag._id}
+              onClick={() => handleAddTag(tag)}
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+            >
+              {tag.name}
+            </div>
+          ))}
+        </div>
+      )}
         <div className="flex flex-wrap mt-2">
           {tags.map((tag) => (
             <span
