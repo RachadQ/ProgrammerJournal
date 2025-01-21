@@ -5,10 +5,11 @@ import { TagProp } from '../interface/TagProp';
 import Cookies from 'js-cookie';
 interface NewJournalEntryFormProps {
   addEntry: (newEntry: JournalEntryProp) => void;
+  IsOwner: boolean;
 }
 
 
-  const NewJournalEntryForm: React.FC<NewJournalEntryFormProps> = ({ addEntry }) => {
+  const NewJournalEntryForm: React.FC<NewJournalEntryFormProps> = ({ addEntry,IsOwner }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [tags, setTags] = useState<TagProp[]>([]);
@@ -192,104 +193,107 @@ interface NewJournalEntryFormProps {
 
   
   return (
-    <div className="relative flex justify-center items-center min-h-[10vh] bg-gray-100">
-      <button
-        className="flex items-center bg-white text-gray-500 font-medium py-2 px-4 rounded-full shadow hover:bg-gray-100 transition duration-300 ease-in-out"
-        onClick={() => setIsOpen(true)}
-      >
-        <span className="text-left">Start a post</span>
-      </button>
-      {isOpen && (
-        <div className="fixed inset-0 bg-gray-700 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4 text-center">Create a Post</h2>
-            <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-              {/* Title Input */}
-              <div className="flex flex-col space-y-2">
-                <label className="text-sm font-semibold">Title:</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Content Input */}
-              <div className="flex flex-col space-y-2">
-                <label className="text-sm font-semibold">Content:</label>
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-
-              {/* Tags Input */}
-              <div className="flex flex-col space-y-2 relative">
-                <label className="text-sm font-semibold">Tags (comma-separated):</label>
-                <input
-                  type="text"
-                  value={query}
-                  onChange={handleTagChange}
-                  className="w-full p-2 border border-gray-300 rounded-lg"
-                />
-
-                {/* Selected Tags */}
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {tags.map((tag) => (
-                    <span
-                      key={tag._id}
-                      className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                    >
-                      {tag.name}
-                      <button
-                        type="button"
-                        className="text-red-500 hover:text-red-700"
-                        onClick={() => handleRemoveTag(tag._id)}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
+    <>
+    {IsOwner && (
+      <div className="relative flex justify-center items-center min-h-[10vh] bg-gray-100">
+        <button
+          className="flex items-center bg-white text-gray-500 font-medium py-2 px-4 rounded-full shadow hover:bg-gray-100 transition duration-300 ease-in-out"
+          onClick={() => setIsOpen(true)}
+        >
+          <span className="text-left">Start a post</span>
+        </button>
+        {isOpen && (
+          <div className="fixed inset-0 bg-gray-700 bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4 text-center">Create a Post</h2>
+              <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+                {/* Title Input */}
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-semibold">Title:</label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg"
+                  />
                 </div>
 
-                {/* Floating Tag Suggestions Dropdown */}
-                {tagSuggestions.length > 0 && (
-                  <ul className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                    {tagSuggestions.map((tag) => (
-                      <li
+                {/* Content Input */}
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-semibold">Content:</label>
+                  <textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+
+                {/* Tags Input */}
+                <div className="flex flex-col space-y-2 relative">
+                  <label className="text-sm font-semibold">Tags (comma-separated):</label>
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={handleTagChange}
+                    className="w-full p-2 border border-gray-300 rounded-lg"
+                  />
+
+                  {/* Selected Tags */}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {tags.map((tag) => (
+                      <span
                         key={tag._id}
-                        className="p-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleAddTag(tag)}
+                        className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-2"
                       >
                         {tag.name}
-                      </li>
+                        <button
+                          type="button"
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => handleRemoveTag(tag._id)}
+                        >
+                          ×
+                        </button>
+                      </span>
                     ))}
-                  </ul>
-                )}
-              </div>
+                  </div>
 
-              {/* Submit and Cancel Buttons */}
-              <button
-                type="submit"
-                className="w-full bg-blue-500 text-white py-2 rounded-lg mt-4 hover:bg-blue-600 transition"
-              >
-                Add Entry
-              </button>
-              <button
-                type="button"
-                className="w-full bg-gray-500 text-white py-2 rounded-lg mt-4 hover:bg-gray-600 transition"
-                onClick={() => setIsOpen(false)}
-              >
-                Cancel
-              </button>
-            </form>
+                  {/* Floating Tag Suggestions Dropdown */}
+                  {tagSuggestions.length > 0 && (
+                    <ul className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                      {tagSuggestions.map((tag) => (
+                        <li
+                          key={tag._id}
+                          className="p-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleAddTag(tag)}
+                        >
+                          {tag.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                {/* Submit and Cancel Buttons */}
+                <button
+                  type="submit"
+                  className="w-full bg-blue-500 text-white py-2 rounded-lg mt-4 hover:bg-blue-600 transition"
+                >
+                  Add Entry
+                </button>
+                <button
+                  type="button"
+                  className="w-full bg-gray-500 text-white py-2 rounded-lg mt-4 hover:bg-gray-600 transition"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Cancel
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        )}
+      </div>
+    )}
+  </>)
   };
   
   export default NewJournalEntryForm;

@@ -40,7 +40,7 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
       {/* Journal Entries Section */}
       <section className="journal-section">
         
-        <NewJournalEntryForm addEntry={handleAddEntry} />
+        <NewJournalEntryForm addEntry={handleAddEntry} IsOwner={isOwner} />
         {filteredEntries.length > 0 ? (
           <div className="space-y-4 mt-4">
             <JournalEntryList
