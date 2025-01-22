@@ -6,7 +6,7 @@ import JournalEntryListProps from '../interface/JournalEntryListProps';
 
     const JournalEntryList: React.FC<JournalEntryListProps> = ({entries,isOwner,onDelete,onEdit}) =>{
    
-      console.log("Reaching journal Entry List");
+    
       return (
         <section>
         <h2 className="text-2xl font-semibold text-center my-6">Journal Entries</h2>

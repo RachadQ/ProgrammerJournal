@@ -9,10 +9,6 @@ import EditJournalEntryForm from './EditJournalEntryForm';
 const JournalEntry: React.FC<JournalEntryProps> = ({entry,isOwner,onDelete,onEdit}) =>{
   const [isEditing, setIsEditing] = useState(false);
  
-  
- 
-  console.log(" All the entries that this user has:", entry);
-  console.log(isOwner);
   const handleDeleteEntry = async (entryId: string) => {
 
     // Ask the user for confirmation before deleting

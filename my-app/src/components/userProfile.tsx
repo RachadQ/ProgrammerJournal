@@ -26,7 +26,7 @@ const UserProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const [authenticatedUserId, setAuthenticatedUserId] = useState<string | null>(null);
   const [filteredEntries, setFilteredEntries] = useState<JournalEntryProp[]>(entries);
-  const [PagerUserID, setPagerUserID] = useState<string | null>(null);
+  
 
 
   
@@ -46,11 +46,11 @@ const UserProfile: React.FC = () => {
         const refreshToken = Cookies.get('refreshToken');
         
         if (!token && refreshToken) {
-          const tokenResponse = await axios.post('http://localhost:3001/auth/refresh', { refreshToken });
+          const tokenResponse = await axios.post('http://localhost:3001/refresh-token', { refreshToken });
           const newToken = tokenResponse.data.token;
           Cookies.set('authToken', newToken);
         }
-        console.log("Response token Data:", JSON.stringify(token, null, 2));
+      
         // Fetch user information
         const userInfoResponse = await axios.get('http://localhost:3001/user-info', {
           headers: {
@@ -64,7 +64,7 @@ const UserProfile: React.FC = () => {
           params: { page, limit: 5 },
           withCredentials: true,
         });
-        console.log("Response Data:", JSON.stringify(response.data, null, 2));
+       
        
       
 
@@ -78,7 +78,7 @@ const UserProfile: React.FC = () => {
     });
 
    
-        setPagerUserID(response.data.totalEntries);
+      
         // Check if more entries are available
         // Check if there are more entries
 if (response.data.journalEntries.length === 0 || entries.length + response.data.journalEntries.length >= response.data.totalEntries) {
@@ -86,6 +86,7 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
 } else {
   setHasMoreEntries(true);
 }
+console.log("Has More Entries:", hasMoreEntries);
       } catch (err: any) {
         console.error('Error fetching profile:', err);
       } finally {
@@ -94,27 +95,32 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
     };
 
     if (username && hasMoreEntries) {
+      console.log("Fetching data for page:", page);
       fetchProfile(page);
     }
   }, [username, page,hasMoreEntries]);
 
   useEffect(() => {
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
+        console.log("Loader is in view, loading next page.");
         if (entry.isIntersecting && hasMoreEntries && !loading) {
+        
           setPage((prevPage) => prevPage + 1);
         }
       },
-      { threshold: 1.0 }
+      { threshold: 0.5 }
     );
-  
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
+    const loader = loaderRef.current;
+    
+    if (loader) {
+      observer.observe(loader);
     }
   
     return () => {
-      if (loaderRef.current) {
-        observer.unobserve(loaderRef.current);
+      if (loader) {
+        observer.unobserve(loader);
       }
     };
   }, [hasMoreEntries, loading]);
@@ -142,7 +148,7 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
     );
   };
 
-  console.log("This is the authent" + authenticatedUserId);
+ 
   const downloadResume = async () => {
     const googleDriveLink = "https://drive.google.com/uc?export=download&id=1UsBGAJXyWdA9WQxzJeGj85fsSDKZFEVI";
     window.location.href = googleDriveLink;
@@ -191,9 +197,13 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
       deleteEntry={deleteEntry}
       editEntry={editEntry}
       profileUserId={profile.id}
-    
+
     />
   </section>
+  {/* Loader Element */}
+  <div ref={loaderRef} className="loader">
+        {loading ? <p>Loading...</p> : <p>No more entries</p>}
+      </div>
 </div>
 
     

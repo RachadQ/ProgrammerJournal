@@ -27,8 +27,7 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
 }) => {
 
   const isOwner = authenticatedUserId === profileUserId;
-  console.log("viewr: " + JSON.stringify(authenticatedUserId, null, 2));
-  console.log("profile user: " + JSON.stringify(profileUserId, null, 2));
+  
   return (
     <div className="user-journal-section bg-gray-100 p-4 rounded-lg shadow-md">
       {/* Tags Section */}
