@@ -18,12 +18,11 @@ const UserProfile: React.FC = () => {
   const [profile, setProfile] = useState<ProfileWithEntriesResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [entries, setEntries] = useState<JournalEntryProp[]>([]);
-  const [totalEntries, setTotalEntries] = useState(0);
   const [loading, setLoading] = useState(false);
   const loaderRef = useRef(null);
   const [hasMoreEntries, setHasMoreEntries] = useState(true);
   const [page, setPage] = useState(1);
-  const { userId } = useParams<{ userId: string }>();
+  
   const [authenticatedUserId, setAuthenticatedUserId] = useState<string | null>(null);
   const [filteredEntries, setFilteredEntries] = useState<JournalEntryProp[]>(entries);
   
@@ -201,6 +200,7 @@ console.log("Has More Entries:", hasMoreEntries);
     />
   </section>
   {/* Loader Element */}
+
   <div ref={loaderRef} className="loader">
         {loading ? <p>Loading...</p> : <p>No more entries</p>}
       </div>
