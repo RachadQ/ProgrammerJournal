@@ -102,6 +102,19 @@ const LoginPage: React.FC = () => {
             Reset it here
           </button>
         </p>
+
+        {/*Create Acount Button */}
+        <p className="mt-4 text-sm text-center">
+        Don't have an Account?{' '}
+        <button
+          onClick={() => navigate('/create-account')}
+          className="text-blue-500 hover:unerline"
+          >
+            Create one here
+          
+        </button>
+
+        </p>
         </div>
       </div>
     );
