@@ -3,21 +3,8 @@ import JournalEntryProp from '../interface/JournalEntryProp';
 import { TagProp } from '../interface/TagProp';
 import Cookies from 'js-cookie';
 import axios, { AxiosError } from 'axios';
+import { EditJournalEntryFormProps } from '../interface/EditJournalEntryFormProps';
 
-interface EditJournalEntryFormProps {
-  initialValues?: {
-    _id: string;
-    title: string;
-    content: string;
-    tags: TagProp[];
-    user?: string;
-    entry?: any;
-    createdAt?: string;
-    updatedAt?: string;
-  };
-  onSubmit: (entry: JournalEntryProp) => void;
-  onCancel: () => void;
-}
 
 const EditJournalEntryForm: React.FC<EditJournalEntryFormProps> = ({ initialValues, onSubmit, onCancel }) => {
   const [entry, setEntry] = useState<JournalEntryProp>({
