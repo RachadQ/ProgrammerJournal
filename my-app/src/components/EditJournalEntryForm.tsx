@@ -97,7 +97,6 @@ const EditJournalEntryForm: React.FC<EditJournalEntryFormProps> = ({ initialValu
       alert("Title and content are required.");
       return;
     }
-  console.log("this is the entry" + entry)
     try {
       const response = await axios.put(`http://localhost:3001/edit/${entry._id}`, {
         title: entry.title,

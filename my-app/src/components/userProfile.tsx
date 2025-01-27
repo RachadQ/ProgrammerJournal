@@ -93,14 +93,14 @@ console.log("Has More Entries:", hasMoreEntries);
       }
     };
 
-    if (username && hasMoreEntries) {
+    if (username && hasMoreEntries && !loading) {
       console.log("Fetching data for page:", page);
       fetchProfile(page);
     }
   }, [username, page,hasMoreEntries]);
 
   useEffect(() => {
-    
+    let debounceTimer: NodeJS.Timeout;
     const observer = new IntersectionObserver(
       ([entry]) => {
         console.log("Loader is in view, loading next page.");
@@ -109,7 +109,7 @@ console.log("Has More Entries:", hasMoreEntries);
           setPage((prevPage) => prevPage + 1);
         }
       },
-      { threshold: 0.5 }
+      { threshold: 1 }
     );
     const loader = loaderRef.current;
     
@@ -201,7 +201,7 @@ console.log("Has More Entries:", hasMoreEntries);
   </section>
   {/* Loader Element */}
 
-  <div ref={loaderRef} className="loader">
+  <div ref={loaderRef} className="loader"  style={{ height: '50px' }}>
         {loading ? <p>Loading...</p> : <p>No more entries</p>}
       </div>
 </div>
