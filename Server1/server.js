@@ -611,7 +611,7 @@ router.post('/forgot-password',async(req,res) =>
 
 })
 // Sign out route
-router.post('/logout', authenticateToken, (req, res) => {
+router.post('/logout', authenticateToken, async (req, res) => {
   try {
     // Clear the authToken cookie
     res.clearCookie('authToken', { httpOnly: true, secure: true });
@@ -684,6 +684,21 @@ router.post('/tag', async (req, res) => {
   }
 });
 
+app.get('/api/user/tags', authenticateToken, async (req,res) =>
+{
+  try {
+    const userId = req.user.id; // Assuming user ID is available in the request
+    const tags = await JournalEntry.aggregate([
+      { $match: { user: userId } },
+      { $unwind: '$tags' },
+      { $group: { _id: '$tags.name' } },
+      { $project: { _id: 0, name: '$_id' } }
+    ]);
+    res.json(tags);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch tags' });
+  }
+});
 // Reset password route
 router.post('/reset-password', async (req, res) => {
   

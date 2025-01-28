@@ -100,7 +100,7 @@ console.log("Has More Entries:", hasMoreEntries);
   }, [username, page,hasMoreEntries]);
 
   useEffect(() => {
-    let debounceTimer: NodeJS.Timeout;
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         console.log("Loader is in view, loading next page.");

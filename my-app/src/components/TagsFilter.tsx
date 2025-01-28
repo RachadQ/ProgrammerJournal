@@ -2,6 +2,7 @@
   import React, { useState, useEffect } from "react";
  
   import TagsFilterProps from "../interface/TagFIlterProps";
+import axios from "axios";
 
 
   const TagsFilter: React.FC<TagsFilterProps> = ({ entries, onFilterChange,authenticatedUserId }) => {
@@ -20,7 +21,18 @@
     
         setUniqueTags(["All", ...Array.from(tagsSet)]);
         onFilterChange(userEntries);
-      }, [entries, authenticatedUserId]);
+
+        const fetchTags = async () => {
+          try {
+            const tagResponse = await axios.get(`http://localhost:3001/api/user/tags`);
+            setUniqueTags(tagResponse.data);
+          } catch (err) {
+            console.error('Error fetching tags:', err);
+          }
+        };
+
+        fetchTags();
+      }, [entries, authenticatedUserId,onFilterChange]);
 
       const handleTagClick = (tag: string) => {
         setActiveTag(tag);
