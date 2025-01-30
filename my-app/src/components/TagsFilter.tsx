@@ -5,13 +5,13 @@
 import axios from "axios";
 
 
-  const TagsFilter: React.FC<TagsFilterProps> = ({ entries, onFilterChange,authenticatedUserId }) => {
+  const TagsFilter: React.FC<TagsFilterProps> = ({ entries, onFilterChange,ProfileUser }) => {
       const [uniqueTags, setUniqueTags] = useState<string[]>([]);
       const [activeTag, setActiveTag] = useState<string>("All");
     
       useEffect(() => {
         // Filter entries for the authenticated user
-        const userEntries = entries.filter((entry) => entry.user === authenticatedUserId);
+        const userEntries = entries.filter((entry) => entry.user === ProfileUser);
     
         // Generate unique tags from the user's journal entries
         const tagsSet = new Set<string>();
@@ -32,20 +32,20 @@ import axios from "axios";
         };
 
         fetchTags();
-      }, [entries, authenticatedUserId,onFilterChange]);
+      }, [entries, ProfileUser,onFilterChange]);
 
       const handleTagClick = (tag: string) => {
         setActiveTag(tag);
     
         if (tag === "All") {
           // Show all entries for the authenticated user
-          onFilterChange(entries.filter((entry) => entry.user === authenticatedUserId));
+          onFilterChange(entries.filter((entry) => entry.user === ProfileUser));
         } else {
-          // Show entries matching the selected tag for the authenticated user
+          // Show entries matching the selected tag for the profile user
           onFilterChange(
             entries.filter(
               (entry) =>
-                entry.user === authenticatedUserId &&
+                entry.user === ProfileUser &&
                 entry.tags.some((entryTag) => entryTag.name === tag)
             )
           );

@@ -22,6 +22,7 @@ const UserProfile: React.FC = () => {
   const loaderRef = useRef(null);
   const [hasMoreEntries, setHasMoreEntries] = useState(true);
   const [page, setPage] = useState(1);
+  const [tags, setTags] = useState<string[]>([]);
   
   const [authenticatedUserId, setAuthenticatedUserId] = useState<string | null>(null);
   const [filteredEntries, setFilteredEntries] = useState<JournalEntryProp[]>(entries);
@@ -72,10 +73,10 @@ const UserProfile: React.FC = () => {
          // Filter out any duplicate entries based on the _id
     setEntries(prevEntries => {
       const existingEntryIds = prevEntries.map(entry => entry._id);
-  const newEntries = response.data.journalEntries.filter(entry => !existingEntryIds.includes(entry._id));
+      const newEntries = response.data.journalEntries.filter(entry => !existingEntryIds.includes(entry._id));
   return [...prevEntries, ...newEntries];
     });
-
+   
    
       
         // Check if more entries are available

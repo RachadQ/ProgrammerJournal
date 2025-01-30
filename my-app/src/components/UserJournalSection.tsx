@@ -33,7 +33,7 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
       {/* Tags Section */}
       <section className="tags-section">
         <h2 className="text-xl font-semibold mb-3 ">See Journal Entries with:</h2>
-        <TagsFilter entries={entries} onFilterChange={setFilteredEntries} authenticatedUserId={profileUserId} />
+        <TagsFilter entries={entries} onFilterChange={setFilteredEntries} ProfileUser={profileUserId} />
       </section>
 
       {/* Journal Entries Section */}
