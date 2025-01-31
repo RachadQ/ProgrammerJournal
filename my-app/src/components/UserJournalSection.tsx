@@ -3,6 +3,7 @@ import TagsFilter from "./TagsFilter";
 import NewJournalEntryForm from "./newJournalEntryForm";
 import JournalEntryList from "./journalEntryList";
 import JournalEntryProp from "../interface/JournalEntryProp";
+import { all } from "axios";
 
 interface UserJournalSectionProps {
   entries: JournalEntryProp[];
@@ -13,6 +14,7 @@ interface UserJournalSectionProps {
   deleteEntry: (entryId: string) => void;
   editEntry: (updatedEntry: JournalEntryProp) => void;
   profileUserId: string;
+  allTags: string[];
 }
 
 const UserJournalSection: React.FC<UserJournalSectionProps> = ({
@@ -24,6 +26,7 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
   deleteEntry,
   editEntry,
   profileUserId,
+  allTags,
 }) => {
 
   const isOwner = authenticatedUserId === profileUserId;
@@ -33,7 +36,7 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
       {/* Tags Section */}
       <section className="tags-section">
         <h2 className="text-xl font-semibold mb-3 ">See Journal Entries with:</h2>
-        <TagsFilter entries={entries} onFilterChange={setFilteredEntries} ProfileUser={profileUserId} />
+        <TagsFilter entries={entries} onFilterChange={setFilteredEntries} ProfileUser={profileUserId} allTags={allTags} />
       </section>
 
       {/* Journal Entries Section */}

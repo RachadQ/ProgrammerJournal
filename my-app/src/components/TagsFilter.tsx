@@ -5,12 +5,12 @@
 import axios from "axios";
 
 
-  const TagsFilter: React.FC<TagsFilterProps> = ({ entries, onFilterChange,ProfileUser }) => {
+  const TagsFilter: React.FC<TagsFilterProps> = ({ entries, onFilterChange,ProfileUser,allTags }) => {
       const [uniqueTags, setUniqueTags] = useState<string[]>([]);
       const [activeTag, setActiveTag] = useState<string>("All");
     
       useEffect(() => {
-        // Filter entries for the authenticated user
+        // Filter entries for the Authenticated user
         const userEntries = entries.filter((entry) => entry.user === ProfileUser);
     
         // Generate unique tags from the user's journal entries
@@ -55,7 +55,7 @@ import axios from "axios";
       return (
         <div className="tags-filter flex justify-center items-center w-full">
           <div className="flex flex-wrap gap-2 justify-center">
-            {uniqueTags.map((tag) => (
+            {allTags.map((tag) => (
               <button
                 key={tag}
                 className={`px-4 py-2 rounded-full text-sm font-medium border 

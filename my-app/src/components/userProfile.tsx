@@ -94,10 +94,23 @@ console.log("Has More Entries:", hasMoreEntries);
       }
     };
 
+    const fetchAllTags = async () => {
+      try{
+        const tagResponse = await axios.get('http://localhost:3001/api/user/tags');
+        setTags(tagResponse.data);
+        console.log(tagResponse.data);
+      }catch(err)
+      {
+        console.error('Error fetching tags:', err);
+      }
+    }
+
     if (username && hasMoreEntries && !loading) {
       console.log("Fetching data for page:", page);
       fetchProfile(page);
     }
+
+    fetchAllTags();
   }, [username, page,hasMoreEntries]);
 
   useEffect(() => {
@@ -150,8 +163,8 @@ console.log("Has More Entries:", hasMoreEntries);
 
  
   const downloadResume = async () => {
-    const googleDriveLink = "https://drive.google.com/uc?export=download&id=1UsBGAJXyWdA9WQxzJeGj85fsSDKZFEVI";
-    window.location.href = googleDriveLink;
+   // const googleDriveLink = "https://drive.google.com/uc?export=download&id=1UsBGAJXyWdA9WQxzJeGj85fsSDKZFEVI";
+  //window.location.href = googleDriveLink;
   };
 
   if (!profile) {
@@ -197,6 +210,7 @@ console.log("Has More Entries:", hasMoreEntries);
       deleteEntry={deleteEntry}
       editEntry={editEntry}
       profileUserId={profile.id}
+      allTags={tags}
 
     />
   </section>
