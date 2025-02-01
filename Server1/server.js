@@ -684,8 +684,9 @@ router.post('/tag', async (req, res) => {
   }
 });
 
-app.get('/api/user/tags', authenticateToken, async (req,res) =>
+app.get('/user/tags', authenticateToken, async (req,res) =>
 {
+  const userId = req.user.id;
   try {
   //  const userId = req.user.id; // Assuming user ID is available in the request
     const tags = await JournalEntry.aggregate([

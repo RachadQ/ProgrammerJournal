@@ -23,6 +23,7 @@ const UserProfile: React.FC = () => {
   const [hasMoreEntries, setHasMoreEntries] = useState(true);
   const [page, setPage] = useState(1);
   const [tags, setTags] = useState<string[]>([]);
+
   
   const [authenticatedUserId, setAuthenticatedUserId] = useState<string | null>(null);
   const [filteredEntries, setFilteredEntries] = useState<JournalEntryProp[]>(entries);
@@ -48,6 +49,7 @@ const UserProfile: React.FC = () => {
         if (!token && refreshToken) {
           const tokenResponse = await axios.post('http://localhost:3001/refresh-token', { refreshToken });
           const newToken = tokenResponse.data.token;
+       
           Cookies.set('authToken', newToken);
         }
       
@@ -86,7 +88,7 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
 } else {
   setHasMoreEntries(true);
 }
-console.log("Has More Entries:", hasMoreEntries);
+
       } catch (err: any) {
         console.error('Error fetching profile:', err);
       } finally {
@@ -96,7 +98,19 @@ console.log("Has More Entries:", hasMoreEntries);
 
     const fetchAllTags = async () => {
       try{
-        const tagResponse = await axios.get('http://localhost:3001/api/user/tags');
+        const authToken = Cookies.get('authToken'); // Fetch token from cookies
+
+        if(!authToken){
+          console.error('no auth token found. fetching tags aborted')
+          return;
+        }
+        const tagResponse = await axios.get('http://localhost:3001/user/tags',
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`, // Attach token
+          }
+        });
+        console.log(tagResponse.data);
         setTags(tagResponse.data);
         console.log(tagResponse.data);
       }catch(err)
