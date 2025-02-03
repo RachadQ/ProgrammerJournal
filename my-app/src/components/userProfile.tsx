@@ -99,12 +99,12 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
     const fetchAllTags = async () => {
       try{
         const authToken = Cookies.get('authToken'); // Fetch token from cookies
-
+        console.log(" the auth token is" + authToken);
         if(!authToken){
           console.error('no auth token found. fetching tags aborted')
           return;
         }
-        const tagResponse = await axios.get('http://localhost:3001/user/tags',
+        const tagResponse = await axios.get('http://localhost:3001/get/tags',
         {
           headers: {
             Authorization: `Bearer ${authToken}`, // Attach token

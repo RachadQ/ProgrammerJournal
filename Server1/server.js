@@ -684,8 +684,9 @@ router.post('/tag', async (req, res) => {
   }
 });
 
-app.get('/user/tags', authenticateToken, async (req,res) =>
+app.get('/get/tags', authenticateToken, async (req,res) =>
 {
+  console.log("Reach tag");
   const userId = req.user.id;
   try {
   //  const userId = req.user.id; // Assuming user ID is available in the request
