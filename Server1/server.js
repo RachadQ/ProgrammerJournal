@@ -688,17 +688,26 @@ app.get('/get/tags', authenticateToken, async (req,res) =>
 {
   console.log("Reach tag");
   const userId = req.user.id;
+  
   try {
+
+    //get all tags from database that has the req.user.id
+    const entries = await Entry.find({ user: userId }).select('tags');
   //  const userId = req.user.id; // Assuming user ID is available in the request
-    const tags = await JournalEntry.aggregate([
-      { $match: { user: userId } },
-      { $unwind: '$tags' },
-      { $group: { _id: '$tags.name' } },
-      { $project: { _id: 0, name: '$_id' } }
-    ]);
+
+  //extract all tags
+  const tagIds = [...new Set(entries.flatMap(entry => entry.tags))]
+   // Fetch tag details from the Tag collection
+   const tags = await Tag.find({ _id: { $in: tagIds } });
+  console.log(tags);
+  if (tags.length === 0) {
+    return res.status(404).json({ message: 'No tags found for this user' });
+  }
     res.json(tags);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch tags' });
+    console.error('Error fetching tags:', err);
+    res.status(500).json({ message: 'Internal server error' });
+    console.log(err);
   }
 });
 // Reset password route

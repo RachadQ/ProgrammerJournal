@@ -22,16 +22,7 @@ import axios from "axios";
         setUniqueTags(["All", ...Array.from(tagsSet)]);
         onFilterChange(userEntries);
 
-        const fetchTags = async () => {
-          try {
-            const tagResponse = await axios.get(`http://localhost:3001/api/user/tags`);
-            setUniqueTags(tagResponse.data);
-          } catch (err) {
-            console.error('Error fetching tags:', err);
-          }
-        };
-
-        fetchTags();
+      
       }, [entries, ProfileUser,onFilterChange]);
 
       const handleTagClick = (tag: string) => {

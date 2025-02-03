@@ -99,7 +99,7 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
     const fetchAllTags = async () => {
       try{
         const authToken = Cookies.get('authToken'); // Fetch token from cookies
-        console.log(" the auth token is" + authToken);
+        
         if(!authToken){
           console.error('no auth token found. fetching tags aborted')
           return;
@@ -113,9 +113,20 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
         console.log(tagResponse.data);
         setTags(tagResponse.data);
         console.log(tagResponse.data);
-      }catch(err)
+      }catch(err: any)
       {
-        console.error('Error fetching tags:', err);
+        if (axios.isAxiosError(err)) {
+          // Axios-specific errors
+          console.error('Axios error fetching tags:', {
+              message: err.message,
+              status: err.response?.status, // HTTP status code (if available)
+              data: err.response?.data, // Server error message (if available)
+              url: err.config?.url, // API endpoint
+          });
+      } else {
+          // Generic errors
+          console.error('Unexpected error fetching tags:', err);
+      }
       }
     }
 
