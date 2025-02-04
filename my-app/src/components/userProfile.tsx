@@ -104,12 +104,7 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
           console.error('no auth token found. fetching tags aborted')
           return;
         }
-        const tagResponse = await axios.get('http://localhost:3001/get/tags',
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`, // Attach token
-          }
-        });
+        const tagResponse = await axios.get(`http://localhost:3001/get/${username}/tags`);
         //extract tags
         const tagNames = tagResponse.data.map((tag: { name: string }) => tag.name);
         console.log("Full Response:", JSON.stringify(tagResponse.data, null, 2));
@@ -138,7 +133,7 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
     }
 
     fetchAllTags();
-  }, [username, page,hasMoreEntries]);
+  }, [username, page,hasMoreEntries,JSON.stringify(tags)]);
 
   useEffect(() => {
     

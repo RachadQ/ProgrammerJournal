@@ -206,10 +206,10 @@ router.post('/entrie', authenticateToken, async (req, res) => {
   });
 
 
-
+ // newEntryuser.journalEntries.push(newEntry._id);
     // Save the new entry to the database
     await newEntry.save();
-
+    
       // Respond with a success message or the newly created entry
       res.status(201).json({ 
         message: 'Journal entry created successfully', 
@@ -397,10 +397,14 @@ router.get('/user/:username', async (req,res) =>{
   
   try {
    
+   
+    
+   
    // Fetch the user by username
    const user = await User.findOne({ username });
-
-   
+  
+  
+  
     //if user not found
     if(!user)
     {
@@ -414,6 +418,7 @@ router.get('/user/:username', async (req,res) =>{
       .limit(Number(limit))
       .exec();
     
+     
     
     // Fetch the journal entries for this user by their ObjectId
     const totalEntries = await Entry.countDocuments({ user: user._id });
@@ -684,26 +689,41 @@ router.post('/tag', async (req, res) => {
   }
 });
 
-app.get('/get/tags', authenticateToken, async (req,res) =>
+app.get('/get/:username/tags', async (req,res) =>
 {
-  console.log("Reach tag");
-  const userId = req.user.id;
+  //console.log("Reach tag");
+    const { username } = req.params;
   
   try {
 
-    //get all tags from database that has the req.user.id
-    const entries = await Entry.find({ user: userId }).select('tags');
-  //  const userId = req.user.id; // Assuming user ID is available in the request
+     // Find the user by username and populate their journal entries with tags
+     const user = await User.findOne({ username });
 
-  //extract all tags
-  const tagIds = [...new Set(entries.flatMap(entry => entry.tags))]
-   // Fetch tag details from the Tag collection
-   const tags = await Tag.find({ _id: { $in: tagIds } });
-  console.log(tags);
-  if (tags.length === 0) {
-    return res.status(404).json({ message: 'No tags found for this user' });
-  }
-    res.json(tags);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+}
+// Fetch the journal entries for this user by their ObjectId
+const entries = await Entry.find({ user: user._id })
+.populate('tags');
+    
+ 
+
+   // Extract unique tags from the user's journal entries
+   const uniqueTags = new Set();
+
+   entries.forEach(entry => {
+    if (entry.tags && entry.tags.length > 0) {
+        entry.tags.forEach(tag => {
+            uniqueTags.add(JSON.stringify(tag)); // Convert to string to ensure uniqueness
+        });
+    }
+});
+
+   console.log(uniqueTags);
+   // Convert back to JSON objects
+   const tagsArray = Array.from(uniqueTags).map(tag => JSON.parse(tag));
+
+   res.status(200).json(tagsArray);
   } catch (err) {
     console.error('Error fetching tags:', err);
     res.status(500).json({ message: 'Internal server error' });
@@ -731,10 +751,11 @@ router.post('/reset-password', async (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired token' });
     }
 
-    console.log("Before " + user.password)
+    
      // Update the user's password directly
     user.password = newPassword;  // No need to hash manually, the pre-save hook will handle this
-    console.log("after " + user.password)
+   
+
     // Clear the reset token and expiration time
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
@@ -754,7 +775,7 @@ router.post('/reset-password', async (req, res) => {
 //Route to edit an existing journal entry
 router.put("/edit/:id",authenticateToken, async (req,res) =>
 {
-  console.log("Reach");
+ 
   const { id } = req.params;
   const { title, content, tags,userId } = req.body;
 
@@ -779,19 +800,17 @@ router.put("/edit/:id",authenticateToken, async (req,res) =>
 
     // Find the journal entry
     const entry = await Entry.findById(id);
-    console.log("entry1:" +  entry);
+    
     if (!entry) {
       return res.status(404).json({ message: "Journal entry not found" });
     }
    
-    console.log("Users " + entry.user + "  " + req.user.id );
+
     // Check user authorization
     if (String(entry.user) !== String(req.user.id)) {
       return res.status(403).json({ message: "You are not authorized to edit this entry" });
     }
 
-    console.log("Reach");
-    console.log("entry1:" +  entry);
     
     // Update entry fields
     entry.title = title || entry.title;
@@ -799,7 +818,7 @@ router.put("/edit/:id",authenticateToken, async (req,res) =>
     entry.content = content || entry.content;
     entry.tags = tagIds;
     entry.updatedAt = new Date();
-    console.log("entry 2 reach:" +  entry);
+  
    
     // Save the updated entry
     await entry.save();
