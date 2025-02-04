@@ -110,8 +110,10 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
             Authorization: `Bearer ${authToken}`, // Attach token
           }
         });
-        console.log(tagResponse.data);
-        setTags(tagResponse.data);
+        //extract tags
+        const tagNames = tagResponse.data.map((tag: { name: string }) => tag.name);
+        console.log("Full Response:", JSON.stringify(tagResponse.data, null, 2));
+        setTags(tagNames);
         console.log(tagResponse.data);
       }catch(err: any)
       {

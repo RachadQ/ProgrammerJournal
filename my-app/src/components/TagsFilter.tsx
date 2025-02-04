@@ -46,7 +46,7 @@ import axios from "axios";
       return (
         <div className="tags-filter flex justify-center items-center w-full">
           <div className="flex flex-wrap gap-2 justify-center">
-            {allTags.map((tag) => (
+            {allTags?.map((tag) => (
               <button
                 key={tag}
                 className={`px-4 py-2 rounded-full text-sm font-medium border 
