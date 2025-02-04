@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef  } from "react";
+import React, { useEffect, useState,useRef,useCallback  } from "react";
 import axios from 'axios';
 import JournalEntryList from "./journalEntryList";
 import NewJournalEntryForm from "./newJournalEntryForm";
@@ -29,142 +29,99 @@ const UserProfile: React.FC = () => {
   const [filteredEntries, setFilteredEntries] = useState<JournalEntryProp[]>(entries);
   
 
-
-  
-       // Function to get cookie value by name
-       const getCookie = (name: string): string | null => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-        return null;
-      };
-
-  useEffect(() => {
-    const fetchProfile = async (page: number) => {
-      setLoading(true);
-      try {
-        const token = Cookies.get('authToken');
-        const refreshToken = Cookies.get('refreshToken');
-        
-        if (!token && refreshToken) {
-          const tokenResponse = await axios.post('http://localhost:3001/refresh-token', { refreshToken });
-          const newToken = tokenResponse.data.token;
-       
-          Cookies.set('authToken', newToken);
-        }
-      
-        // Fetch user information
-        const userInfoResponse = await axios.get('http://localhost:3001/user-info', {
-          headers: {
-            Authorization: `Bearer ${token}`, // Include token in Authorization header
-          },
-        });
-        const { _id } = userInfoResponse.data;
-        setAuthenticatedUserId(_id);
-        const response = await axios.get<ProfileWithEntriesResponse>(`http://localhost:3001/user/${username}`, {
-          headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
-          params: { page, limit: 5 },
-          withCredentials: true,
-        });
-       
-       
-      
-
-        setProfile(response.data);
-       
-         // Filter out any duplicate entries based on the _id
-    setEntries(prevEntries => {
-      const existingEntryIds = prevEntries.map(entry => entry._id);
-      const newEntries = response.data.journalEntries.filter(entry => !existingEntryIds.includes(entry._id));
-  return [...prevEntries, ...newEntries];
-    });
-   
-   
-      
-        // Check if more entries are available
-        // Check if there are more entries
-if (response.data.journalEntries.length === 0 || entries.length + response.data.journalEntries.length >= response.data.totalEntries) {
-  setHasMoreEntries(false);
-} else {
-  setHasMoreEntries(true);
-}
-
-      } catch (err: any) {
-        console.error('Error fetching profile:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchAllTags = async () => {
-      try{
-        const authToken = Cookies.get('authToken'); // Fetch token from cookies
-        
-        if(!authToken){
-          console.error('no auth token found. fetching tags aborted')
-          return;
-        }
-        const tagResponse = await axios.get(`http://localhost:3001/get/${username}/tags`);
-        //extract tags
-        const tagNames = tagResponse.data.map((tag: { name: string }) => tag.name);
-        console.log("Full Response:", JSON.stringify(tagResponse.data, null, 2));
-        setTags(tagNames);
-        console.log(tagResponse.data);
-      }catch(err: any)
-      {
-        if (axios.isAxiosError(err)) {
-          // Axios-specific errors
-          console.error('Axios error fetching tags:', {
-              message: err.message,
-              status: err.response?.status, // HTTP status code (if available)
-              data: err.response?.data, // Server error message (if available)
-              url: err.config?.url, // API endpoint
-          });
-      } else {
-          // Generic errors
-          console.error('Unexpected error fetching tags:', err);
-      }
-      }
-    }
-
-    if (username && hasMoreEntries && !loading) {
-      console.log("Fetching data for page:", page);
-      fetchProfile(page);
-    }
-
-    fetchAllTags();
-  }, [username, page,hasMoreEntries,JSON.stringify(tags)]);
-
-  useEffect(() => {
+  /** Fetch Profile & Entries */
+  const fetchProfile = useCallback(async () => {
+    if (!username || loading || !hasMoreEntries) return;
     
+    setLoading(true);
+    try {
+      let token = Cookies.get("authToken");
+      const refreshToken = Cookies.get("refreshToken");
+
+      if (!token && refreshToken) {
+        const tokenResponse = await axios.post("http://localhost:3001/refresh-token", { refreshToken });
+        token = tokenResponse.data.token;
+        Cookies.set("authToken", token);
+      }
+
+      // Fetch User Info
+      const userInfoResponse = await axios.get("http://localhost:3001/user-info", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAuthenticatedUserId(userInfoResponse.data._id);
+
+      // Fetch Profile and Journal Entries
+      const response = await axios.get<ProfileWithEntriesResponse>(
+        `http://localhost:3001/user/${username}`,
+        { headers: { Authorization: `Bearer ${token}` }, params: { page, limit: 5 } }
+      );
+
+      setProfile(response.data);
+
+      // Append new unique entries
+      setEntries((prevEntries) => {
+        const newEntries = response.data.journalEntries.filter(
+          (entry) => !prevEntries.some((e) => e._id === entry._id)
+        );
+        return [...prevEntries, ...newEntries];
+      });
+
+      // Check if there are more entries
+      if (response.data.journalEntries.length === 0 || entries.length + response.data.journalEntries.length >= response.data.totalEntries) {
+        setHasMoreEntries(false);
+      }
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      setError("Failed to load profile.");
+    } finally {
+      setLoading(false);
+    }
+  }, [username, page]);
+
+  /** Fetch Tags */
+  const fetchAllTags = useCallback(async () => {
+    try {
+      const token = Cookies.get("authToken");
+      if (!token) return;
+
+      const tagResponse = await axios.get(`http://localhost:3001/get/${username}/tags`);
+      setTags(tagResponse.data.map((tag: { name: string }) => tag.name));
+      console.log(JSON.stringify(tagResponse));
+    } catch (err) {
+      console.error("Error fetching tags:", err);
+    }
+  }, [username]);
+
+  /** Infinite Scroll Observer */
+  useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        console.log("Loader is in view, loading next page.");
         if (entry.isIntersecting && hasMoreEntries && !loading) {
-        
           setPage((prevPage) => prevPage + 1);
         }
       },
       { threshold: 1 }
     );
-    const loader = loaderRef.current;
-    
-    if (loader) {
-      observer.observe(loader);
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
     }
-  
+
     return () => {
-      if (loader) {
-        observer.unobserve(loader);
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
       }
     };
   }, [hasMoreEntries, loading]);
 
-  
+  /** Fetch Profile & Tags on Mount or Page Change */
+  useEffect(() => {
+    fetchProfile();
+    fetchAllTags();
+  }, [fetchProfile, fetchAllTags]);
 
-  if (error) {
-    return <div className="p-6 text-red-500">{error}</div>;
-  }
+  if (error) return <div className="p-6 text-red-500">{error}</div>;
+  if (!profile) return <div className="p-6">Loading profile...</div>;
 
   const handleAddEntry = (newEntry: JournalEntryProp) => {
     setEntries((prevEntries) => [...prevEntries, newEntry]);
@@ -189,9 +146,6 @@ if (response.data.journalEntries.length === 0 || entries.length + response.data.
   //window.location.href = googleDriveLink;
   };
 
-  if (!profile) {
-    return <div className="p-6">Loading profile...</div>;
-  }
  
 
   return (
