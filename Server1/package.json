@@ -5,7 +5,7 @@
   "main": "config.js",
   "scripts": {
     "test": "cross-env NODE_ENV=test jest",
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9"
   }
 }
