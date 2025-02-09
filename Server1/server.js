@@ -92,7 +92,8 @@ const authenticateToken = (req,res,next) =>
       }
 
       // If the token is valid, attach the user info to the request object
-      req.user = user;
+      req.user = user
+ 
       
       next(); // Proceed to the next middleware
     });
@@ -495,7 +496,7 @@ router.post('/login',async (req,res) =>
   }
   //generate jwt token
   const token = jwt.sign(
-    { id: user._id, username: user.username, redirectUrl },
+    { id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName, redirectUrl },
     JWT_SECRET,
     { expiresIn: '1d' }
   );

@@ -4,16 +4,41 @@ import { Link } from "react-router-dom";
 import Cookies from 'js-cookie';  // Import the js-cookie library
 import { FaChevronDown } from "react-icons/fa"; // Import dropdown icon
 
+
+
 const Header: React.FC<{}> = () => {
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [username, setUsername] = useState("");
+
+  
   // Memoized function to get the auth token from cookies
   const getAuthToken = useCallback(() => {
     return Cookies.get("authToken") || null; // Retrieve the token from cookies
   }, []);
 
+  
   useEffect(() => {
+    const token  = getAuthToken();
     setAuthToken(getAuthToken()); // Set the auth token state on component mount
+
+    if (token) {
+      try {
+          // Split token into its three parts (header, payload, signature)
+           const base64Payload = token.split('.')[1];
+          // Decode the payload part using atob (base64 decoding)
+           const decodes = JSON.parse(atob(base64Payload));
+          // Access the username (or other user data) from the decoded token
+           const username = decodes.username || decodes.email || decodes.sub;
+           setUsername(username);
+           
+       } 
+       catch (error) {
+           console. error("Error decoding token", error);
+      } 
+    }else{
+      console.log("No token found.");
+    }
   }, [getAuthToken]);
 
 // Toggle dropdown menu
@@ -26,6 +51,8 @@ const toggleDropdown = () => {
   setAuthToken(null); // Reset state
   setIsDropdownOpen(false); // Close dropdown
 };
+
+
 return (
   <header className="bg-gray-800 text-white shadow-md">
     <div className="container mx-auto flex justify-between items-center py-4 px-6">
@@ -64,7 +91,7 @@ return (
         {isDropdownOpen && authToken && (
           <div className="absolute right-0 mt-2 w-48 bg-white text-black shadow-lg rounded-lg">
             <Link
-              to="/user/:username"
+              to={`/user/${username}`}
               className="block px-4 py-2 hover:bg-gray-200"
               onClick={() => setIsDropdownOpen(false)}
             >
