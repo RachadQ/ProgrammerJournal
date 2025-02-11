@@ -20,7 +20,7 @@ function App() {
   
   return (
     <div className="App">
-      <Router>
+      
       <BaseLayout>
         <Routes>
           {/*<UserProfile profile={profileData} />*/}
@@ -37,7 +37,7 @@ function App() {
           <Route path="create-account" element={<SignUp/>}/>
         </Routes>
         </BaseLayout>
-       </Router>
+      
     </div>
   );
 }

@@ -3,7 +3,7 @@ import TagsFilter from "./TagsFilter";
 import NewJournalEntryForm from "./newJournalEntryForm";
 import JournalEntryList from "./journalEntryList";
 import JournalEntryProp from "../interface/JournalEntryProp";
-import { all } from "axios";
+
 
 interface UserJournalSectionProps {
   entries: JournalEntryProp[];

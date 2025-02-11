@@ -2,56 +2,20 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // For redirecting after successful login
 import Cookies from 'js-cookie';
+import {useAuth} from "./Default/AuthProvider"
 
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate(); // To redirect after login
+  const { login, error } = useAuth();  // Access the login function from AuthContext
+  const navigate = useNavigate();  // Initialize navigate function
+
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    try {
-      // Make the POST request to the server's /login route
-      const response = await axios.post('http://localhost:3001/login', {
-        email,
-        password,
-      },{
-        withCredentials: true, 
-      }
-
-      
-    );
-    console.log("Request headers:", response.config.headers);
-      
-          // Handle successful login
-          if (response.status === 200) {
-            Cookies.set('authToken', response.data.token, { expires: 1 }); // Save the accessToken (e.g., valid for 1 day)
-            Cookies.set('refreshToken', response.data.refreshToken, { expires: 7 }); // Save the refreshToken (e.g., valid for 7 days)
-            console.log('Response Headers:', response);
-            console.log('Cookies:', document.cookie);
-            console.log('Response Data:', response.data); // Debugging
-            // Redirect the user to the URL specified in the response (if any)
-            const redirectUrl = response.data.redirectUrl || '/';  // Default to home if no redirect is provided
-            console.log('Redirecting to:', redirectUrl);
-          
-          navigate(redirectUrl);
-        } else {
-          throw new Error('Login failed');
-        }
-      } catch (error: any) {
-        // Handle errors (e.g., invalid credentials)
-        setError(error.response?.data?.message || 'An error occurred');
-        console.error("Login error:", error);
-  console.error("Error response:", error.response);
-  console.error("Error response headers:", error.response?.headers);
-  console.error("Error response data:", error.response?.data);
-  setError(error.response?.data?.message || 'An error occurred');
-      }
-    };
-  
+    await login(email, password); // Call the login function from context
+  };
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-lg w-96">
