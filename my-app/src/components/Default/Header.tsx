@@ -1,57 +1,73 @@
 import React , { useState, useEffect ,useCallback} from "react";
 import HeaderProps from "../../types/Header.interface"
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Cookies from 'js-cookie';  // Import the js-cookie library
-import { FaChevronDown } from "react-icons/fa"; // Import dropdown icon
+import { FaChevronDown, FaSearch } from "react-icons/fa"; // Import dropdown icon
+import { useAuth } from "./AuthProvider";
+import axios from "axios";
+import { SearchIcon } from "lucide-react"
+import SearchResults from "./SearchResult";
 
 
+interface HeaderPs {
 
-const Header: React.FC<{}> = () => {
-  const [authToken, setAuthToken] = useState<string | null>(null);
+  onSearch: (query: string) => void
+}
+
+const Header: React.FC = () => {
+  const { authToken, username, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [username, setUsername] = useState("");
-
-  
-  // Memoized function to get the auth token from cookies
-  const getAuthToken = useCallback(() => {
-    return Cookies.get("authToken") || null; // Retrieve the token from cookies
-  }, []);
-
-  
-  useEffect(() => {
-    const token  = getAuthToken();
-    setAuthToken(getAuthToken()); // Set the auth token state on component mount
-
-    if (token) {
-      try {
-          // Split token into its three parts (header, payload, signature)
-           const base64Payload = token.split('.')[1];
-          // Decode the payload part using atob (base64 decoding)
-           const decodes = JSON.parse(atob(base64Payload));
-          // Access the username (or other user data) from the decoded token
-           const username = decodes.username || decodes.email || decodes.sub;
-           setUsername(username);
-           
-       } 
-       catch (error) {
-           console. error("Error decoding token", error);
-      } 
-    }else{
-      console.log("No token found.");
-    }
-  }, [getAuthToken]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const navigate = useNavigate();
 
 // Toggle dropdown menu
 const toggleDropdown = () => {
   setIsDropdownOpen((prev) => !prev);
 };
- // Logout function
- const handleLogout = () => {
-  Cookies.remove("authToken"); // Remove auth token
-  setAuthToken(null); // Reset state
+
+
+const handleSearchChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const query = event.target.value;
+  setSearchQuery(query);
+
+  if (query.trim() === "") {
+    setSearchResults([]); // Clear results if the search is empty
+    return;
+  }
+
+  try {
+    // Send the search request to the backend API
+    const response = await axios.get('http://localhost:3001/search', { params: { query } });
+    setSearchResults(response.data);  // Set the search results
+  } catch (error) {
+    console.error("Error fetching search results:", error);
+  }
+  
+};
+
+const handleSearchSubmit = (event: React.FormEvent) => {
+  event.preventDefault();
+  if (searchQuery.trim() !== "") {
+    
+    // Perform search action here, e.g., navigate to search results page
+    console.log("Searching for:", searchQuery);
+  }
+
+};
+
+const handleLogout = () => {
+  logout();
   setIsDropdownOpen(false); // Close dropdown
 };
 
+  // Handle user selection
+  const handleUserSelect = (user) => {
+    // Navigate to the user's profile page using their username
+    navigate(`/user/${user.username}`);
+    setSearchQuery("");
+  setSearchResults([]);
+  };
 
 return (
   <header className="bg-gray-800 text-white shadow-md">
@@ -60,6 +76,16 @@ return (
       <div className="text-2xl font-bold">
         <span className="cursor-pointer">Plog</span>
       </div>
+
+      {authToken && (
+       <SearchResults
+       searchQuery={searchQuery}
+       searchResults={searchResults}
+       handleSearchChange={handleSearchChange}
+       handleUserSelect={handleUserSelect}
+       handleSearchSubmit={handleSearchSubmit}
+     />
+      )}
 
       {/* Login Button or Profile Dropdown */}
       <div className="relative">

@@ -93,6 +93,8 @@ const authenticateToken = (req,res,next) =>
 
       // If the token is valid, attach the user info to the request object
       req.user = user
+      console.log("User info that is getting sent: " + JSON.stringify(user));
+
  
       
       next(); // Proceed to the next middleware
@@ -118,6 +120,7 @@ router.get('/user-info', authenticateToken, async (req, res) => {
     res.status(200).json({
       _id: user.id,  // Send the userId back to the frontend
       username: user.username,  // You can also return the username or other relevant data
+      name: user.firstName + " " + user.lastName,
     });
   } catch (error) {
     console.error('Error fetching user info:', error);
@@ -389,6 +392,44 @@ router.post('/verify-token', async (req, res) => {
   }
 });
 
+//autocomplete user search by username
+router.get('/search',async (req,res) =>
+{
+  
+  const query = req.query.query;
+
+  try{
+    if (!query) {
+      return res.status(400).json({ message: 'Query parameter is required' });
+    }
+
+    const users = await User.find(
+      {
+        $or: [
+          { firstName: { $regex: `^${query}`, $options: 'i' } },
+          { lastName: { $regex: `^${query}`, $options: 'i' } },
+        ]
+      }
+    ).limit(10);
+    console.log(users);
+
+     // Return the users' first name, last name, and username
+     res.status(200).json(
+      users.map(user => ({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        profilePicture: user.profilePicture,
+      }))
+    );
+  }
+  catch(error)
+  {
+    console.error("Error searching for users:", error.message, error.stack);
+    res.status(500).json({ message: 'Server Error' });
+  }
+
+});
 //get user by username
 router.get('/user/:username', async (req,res) =>{
 
@@ -419,6 +460,7 @@ router.get('/user/:username', async (req,res) =>{
       .limit(Number(limit))
       .exec();
     
+      console.log( "The journal entry" + journalEntries);
      
     
     // Fetch the journal entries for this user by their ObjectId
@@ -657,6 +699,8 @@ router.get('/tag/:name', async (req, res) => {
 
 });
 
+
+
 router.get('/tags/search', async (req, res) => {
  
   const query = req.query.query || ''; // Get the query from the request
@@ -692,7 +736,7 @@ router.post('/tag', async (req, res) => {
 
 app.get('/get/:username/tags', async (req,res) =>
 {
-  //console.log("Reach tag");
+  
     const { username } = req.params;
   
   try {
@@ -720,7 +764,7 @@ const entries = await Entry.find({ user: user._id })
     }
 });
 
-   console.log(uniqueTags);
+   
    // Convert back to JSON objects
    const tagsArray = Array.from(uniqueTags).map(tag => JSON.parse(tag));
 
