@@ -20,12 +20,13 @@ import { Button } from "./JournalEntryLayout/button"
 
 import EditJournalEntryForm from './EditJournalEntryForm';
 
-const JournalEntry: React.FC<JournalEntryProps> = ({entry,isOwner,onDelete,onEdit}) =>{
+const JournalEntry: React.FC<JournalEntryProps> = ({entry,isOwner,ownerName,onDelete,onEdit}) =>{
   const [isEditing, setIsEditing] = useState(false);
   const [openSolutions, setOpenSolutions] = useState<number[]>([]); // Not currently used, but available for future expansion
+  
   const [isIssuesVisible, setIsIssuesVisible] = useState(false); // Not currently used, but available for future expansion
- console.log(entry);
   const handleDeleteEntry = async (entryId: string) => {
+
 
     // Ask the user for confirmation before deleting
     const confirmDelete = window.confirm('Are you sure you want to delete this entry?');
@@ -56,6 +57,7 @@ const handleEditEntry = async (updatedEntry: typeof entry) => {
   }
 };
 
+
 const toggleSolution = (index: number) => {
   // Currently not in use, but kept for consistency with the design example
   setOpenSolutions((prev) => (prev.includes(index)? prev.filter((i) => i!== index) : [...prev, index]));
@@ -70,7 +72,7 @@ return (
           <AvatarFallback>{entry.user.slice(0, 2).toUpperCase() || 'NA'}</AvatarFallback>
         </Avatar>
         <div>
-          <h2 className="text-lg font-semibold">{entry.user || 'Unknown User'}</h2>
+          <h2 className="text-lg font-semibold">{ownerName || 'Unknown User'}</h2>
           <p className="text-sm text-gray-500">
             {/*entry.user?.JobTitle*/  'Unknown Job Title'} at {/*entry.user?.company*/ 'Unknown Company'}
           </p>

@@ -9,6 +9,7 @@ export interface EditJournalEntryFormProps {
       content: string;
       tags: TagProp[];
       user?: string;
+      ownerName?: string | null;
       entry?: any;
       createdAt?: string;
       updatedAt?: string;

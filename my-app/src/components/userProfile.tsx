@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef,useCallback  } from "react";
+import React, { useEffect, useState,useRef,useCallback, useContext  } from "react";
 import axios from 'axios';
 import JournalEntryList from "./journalEntryList";
 import NewJournalEntryForm from "./newJournalEntryForm";
@@ -10,19 +10,24 @@ import '../styles/profile.css';
 import TagsList from "./TagsList";
 import TagsFilter from "./TagsFilter";
 import UserJournalSection from "./UserJournalSection";
-
-
+import { useAuth } from "../components/Default/AuthProvider";
+import GoogleAd from "./GoogleAd";
 
 const UserProfile: React.FC = () => {
   const { username } = useParams<{ username: string }>();
   const [profile, setProfile] = useState<ProfileWithEntriesResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  
+  const { authToken,login, username: loggedInUsername ,loginUserUserId,error } = useAuth();
+ 
   const [entries, setEntries] = useState<JournalEntryProp[]>([]);
   const [loading, setLoading] = useState(false);
   const loaderRef = useRef(null);
   const [hasMoreEntries, setHasMoreEntries] = useState(true);
   const [page, setPage] = useState(1);
   const [tags, setTags] = useState<string[]>([]);
+  
+
+
 
   
   const [authenticatedUserId, setAuthenticatedUserId] = useState<string | null>(null);
@@ -35,25 +40,19 @@ const UserProfile: React.FC = () => {
     
     setLoading(true);
     try {
-      let token = Cookies.get("authToken");
+      /*let token = Cookies.get("authToken");
       const refreshToken = Cookies.get("refreshToken");
 
-      if (!token && refreshToken) {
+      if (authToken) {
         const tokenResponse = await axios.post("http://localhost:3001/refresh-token", { refreshToken });
         token = tokenResponse.data.token;
         Cookies.set("authToken", token);
-      }
-
-      // Fetch User Info
-      const userInfoResponse = await axios.get("http://localhost:3001/user-info", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setAuthenticatedUserId(userInfoResponse.data._id);
+      }*/
 
       // Fetch Profile and Journal Entries
       const response = await axios.get<ProfileWithEntriesResponse>(
         `http://localhost:3001/user/${username}`,
-        { headers: { Authorization: `Bearer ${token}` }, params: { page, limit: 5 } }
+        {  params: { page, limit: 5 } }
       );
 
       setProfile(response.data);
@@ -72,19 +71,18 @@ const UserProfile: React.FC = () => {
       }
     } catch (err) {
       console.error("Error fetching profile:", err);
-      setError("Failed to load profile.");
+      //error("Failed to load profile.");
     } finally {
       setLoading(false);
     }
-  }, [username, page]);
+  }, [username]);
 
   /** Fetch Tags */
   const fetchAllTags = useCallback(async () => {
     try {
-      const token = Cookies.get("authToken");
-      if (!token) return;
-
+      
       const tagResponse = await axios.get(`http://localhost:3001/get/${username}/tags`);
+      
       setTags(tagResponse.data.map((tag: { name: string }) => tag.name));
       console.log(JSON.stringify(tagResponse));
     } catch (err) {
@@ -92,8 +90,26 @@ const UserProfile: React.FC = () => {
     }
   }, [username]);
 
+    /** Fetch Profile & Tags on Mount or Page Change */
+    useEffect(() => {
+      fetchProfile();
+      fetchAllTags();
+    }, [fetchProfile, fetchAllTags]);
+
+    
+
+  
+   
+    
+    
+    
+    
+
+    
   /** Infinite Scroll Observer */
   useEffect(() => {
+
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && hasMoreEntries && !loading) {
@@ -114,12 +130,26 @@ const UserProfile: React.FC = () => {
     };
   }, [hasMoreEntries, loading]);
 
-  /** Fetch Profile & Tags on Mount or Page Change */
   useEffect(() => {
-    fetchProfile();
-    fetchAllTags();
-  }, [fetchProfile, fetchAllTags]);
-
+    if (!entries || !tags) return;
+    console.log("Entries to filter:", entries);
+    console.log("Tags:", tags);
+  
+    // Only apply filtering when entries and tags are available
+    if (entries.length > 0) {
+      if (tags.length > 0) {
+        setFilteredEntries(
+          entries.filter((entry) =>
+            tags.some((tag) =>
+              entry.tags.some((entryTag) => entryTag.name === tag) // If entry.tags is an array of TagProp with name field
+            )
+          )
+        );
+      } else {
+        setFilteredEntries(entries); // If no tags selected, show all entries
+      }
+    }
+  }, [entries,tags]); 
   if (error) return <div className="p-6 text-red-500">{error}</div>;
   if (!profile) return <div className="p-6">Loading profile...</div>;
 
@@ -175,6 +205,11 @@ const UserProfile: React.FC = () => {
     </div>
   </section>
 
+  {/*Google ad Section*/}
+  <section className="py-4">
+    <GoogleAd/>
+  </section>
+
   {/* Journal Entries Section */}
   <section className="py-6 md:py-4 mb-3">
     <UserJournalSection
@@ -182,7 +217,8 @@ const UserProfile: React.FC = () => {
       filteredEntries={filteredEntries}
       setFilteredEntries={setFilteredEntries}
       handleAddEntry={handleAddEntry}
-      authenticatedUserId={authenticatedUserId || ''}
+      authenticatedUserId={loginUserUserId || ''}
+      userName={profile.firstName + " "+ profile.lastName}
       deleteEntry={deleteEntry}
       editEntry={editEntry}
       profileUserId={profile.id}

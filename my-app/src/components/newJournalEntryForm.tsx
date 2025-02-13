@@ -18,10 +18,10 @@ interface NewJournalEntryFormProps {
     const [userId, setUserId] = useState<string | null>(null);
     const [query, setQuery] = useState(""); 
     const [tagSuggestions, setTagSuggestions] = useState<TagProp[]>([]);
-
+    const [name, SetName] = useState<string | null>(null);
 
   
-
+console.log(name);
      // Function to get cookie value by name
   const getCookie = (name: string): string | null => {
     const value = `; ${document.cookie}`;
@@ -61,7 +61,8 @@ interface NewJournalEntryFormProps {
   
           if (response.status === 200) {
             const { _id } = response.data; // Assuming `_id` is the userId field in the response
-            console.log("this is the data" + response.data)
+            console.log("this is the data" + response.data.name)
+            SetName(response.data.name);
             setUserId(_id); // Store userId in state
           } else {
             throw new Error('Failed to fetch user information');
@@ -109,6 +110,7 @@ interface NewJournalEntryFormProps {
           content,
           tags: tags.map((tag) => ({ _id: tag._id, name: tag.name } )), // Ensure tags are correctly formatted
           user: userId as string,
+          owerName: name ,
           createdAt: new Date().toISOString(),  // Add createdAt timestamp
           updatedAt: new Date().toISOString(),  // Add updatedAt timestamp
         });

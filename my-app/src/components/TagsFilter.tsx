@@ -7,7 +7,6 @@ import axios from "axios";
 
   const TagsFilter: React.FC<TagsFilterProps> = ({ entries, onFilterChange,ProfileUser,allTags }) => {
     const [activeTag, setActiveTag] = useState<string>("All");
-
     const initialized = useRef(false); // Prevents multiple initial calls
   
     // Function to filter entries based on tag selection
@@ -26,7 +25,7 @@ import axios from "axios";
           );
         }
       },
-      [entries, ProfileUser, onFilterChange,]
+      [entries, ProfileUser, onFilterChange,activeTag]
     );
   
     useEffect(() => {
@@ -46,7 +45,7 @@ import axios from "axios";
       const updatedTags = ["All", ...Array.from(tagsSet)];
   
       // Pass the updated tags to the parent via the onFilterChange
-      onFilterChange(entries); // Make sure to update the filtered entries based on initial state
+     // onFilterChange(entries); // Make sure to update the filtered entries based on initial state
   
       // Call filter change with "All" tag selected initially
       handleFilterChange("All");
@@ -58,7 +57,7 @@ import axios from "axios";
         setActiveTag(tag);
         handleFilterChange(tag);
       },
-      [handleFilterChange]
+      [handleFilterChange,setActiveTag]
     );
   
 

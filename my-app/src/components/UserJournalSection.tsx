@@ -12,6 +12,7 @@ interface UserJournalSectionProps {
   handleAddEntry: (newEntry: JournalEntryProp) => void;
   authenticatedUserId: string; // New prop for user ID
   deleteEntry: (entryId: string) => void;
+  userName: string;
   editEntry: (updatedEntry: JournalEntryProp) => void;
   profileUserId: string;
   allTags: string[];
@@ -25,12 +26,13 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
   authenticatedUserId,
   deleteEntry,
   editEntry,
+  userName,
   profileUserId,
   allTags,
 }) => {
 
   const isOwner = authenticatedUserId === profileUserId;
-  
+  console.log(" The Name" + userName);
   return (
     <div className="user-journal-section bg-gray-100 p-4 rounded-lg shadow-md">
       {/* Tags Section */}
@@ -47,8 +49,9 @@ const UserJournalSection: React.FC<UserJournalSectionProps> = ({
           <div className="space-y-4 mt-4">
             <JournalEntryList
               entries={filteredEntries}
-              userId={authenticatedUserId} // Pass authenticated user ID
+              userId={profileUserId} // Pass authenticated user ID
               onDelete={deleteEntry} // Pass delete function
+              ownerName={userName}
               onEdit={editEntry} // Pass edit function
               isOwner={isOwner}
             />
