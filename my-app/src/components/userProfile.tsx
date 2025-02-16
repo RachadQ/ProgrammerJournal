@@ -95,7 +95,7 @@ const UserProfile: React.FC = () => {
       fetchProfile();
       fetchAllTags();
     }, [fetchProfile, fetchAllTags]);
-
+    //only on mount:  }, [fetchProfile, fetchAllTags]);
     
 
   
@@ -149,7 +149,7 @@ const UserProfile: React.FC = () => {
         setFilteredEntries(entries); // If no tags selected, show all entries
       }
     }
-  }, [entries,tags]); 
+  }, [entries,tags ]); 
   if (error) return <div className="p-6 text-red-500">{error}</div>;
   if (!profile) return <div className="p-6">Loading profile...</div>;
 
