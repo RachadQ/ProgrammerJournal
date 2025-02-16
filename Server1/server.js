@@ -30,8 +30,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 // Custom CORS middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'http://plog.com:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  sameSite: 'None',
   credentials: true,
 }));
 

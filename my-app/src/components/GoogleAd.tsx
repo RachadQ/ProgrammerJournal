@@ -39,18 +39,23 @@ const GoogleAd: React.FC = () => {
   };
 
   return (
-    <div className="ad-container" onClick={handleAdRender}>
+    <div 
+      className="w-22 h-8 p-2 m-4 border border-gray-200 rounded-md shadow-md"
+      onClick={handleAdRender}
+    >
       <ins
-        key={adKey}  // Ensure a unique key to force re-render in React
-        className="adsbygoogle"
+        key={adKey} // Ensure a unique key to force re-render in React
+       
         style={{ display: 'block' }}
         data-ad-client={adClient}  // Pass your ad client ID here
         data-ad-slot={adSlot}      // Pass your ad slot ID here
         data-ad-format="auto"
         data-full-width-responsive="true"
+        data-adtest="on"
       ></ins>
     </div>
   );
+  
 };
 
 export default GoogleAd;
