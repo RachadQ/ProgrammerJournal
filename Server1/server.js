@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser');
 const { Route } = require('react-router-dom');
 const nodemailer = require('nodemailer');
+const { uploadFile, upload } = require('./blobStorage');
 const router = new express.Router()
 // ADD THIS
 const cors = require('cors');
@@ -37,6 +38,7 @@ app.use(cors({
 }));
 
 app.use(cookieParser());
+
 
 
 //models
@@ -128,6 +130,29 @@ router.get('/user-info', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+app.post('/upload',upload.single('file'),async (req,res) =>
+{
+
+  
+  try{
+   
+    const file = req.file;
+    if(!file)
+    {
+      return res.status(400).send("no file uploaded");
+    }
+    console.log("reach");
+    //upload the file to azure Blob Storage
+    await uploadFile(file);
+    res.send("File uploaded successfully!")
+  }
+  catch(error)
+  {
+    console.error("Error uploading file:", error.message);
+    res.status(500).send("Error uploading file");
+  }
+})
 
 //Update profile route
 router.put('/profile/:username',authenticateToken,async(req,res)=>

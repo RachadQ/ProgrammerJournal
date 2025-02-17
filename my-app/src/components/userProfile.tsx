@@ -12,6 +12,7 @@ import TagsFilter from "./TagsFilter";
 import UserJournalSection from "./UserJournalSection";
 import { useAuth } from "../components/Default/AuthProvider";
 import GoogleAd from "./GoogleAd";
+import FileUpload from "./FileUpload";
 
 const UserProfile: React.FC = () => {
   const { username } = useParams<{ username: string }>();
@@ -25,7 +26,7 @@ const UserProfile: React.FC = () => {
   const [hasMoreEntries, setHasMoreEntries] = useState(true);
   const [page, setPage] = useState(1);
   const [tags, setTags] = useState<string[]>([]);
-  
+
 
 
 
@@ -209,6 +210,11 @@ const UserProfile: React.FC = () => {
   <section className="py-4">
     <GoogleAd/>
   </section>
+
+  {/* File Upload Section */}
+  <section className="py-4">
+        <FileUpload /> {/* Using FileUpload Component here */}
+      </section>
 
   {/* Journal Entries Section */}
   <section className="py-6 md:py-4 mb-3">
