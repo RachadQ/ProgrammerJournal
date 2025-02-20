@@ -41,14 +41,7 @@ const UserProfile: React.FC = () => {
     
     setLoading(true);
     try {
-      /*let token = Cookies.get("authToken");
-      const refreshToken = Cookies.get("refreshToken");
-
-      if (authToken) {
-        const tokenResponse = await axios.post("http://localhost:3001/refresh-token", { refreshToken });
-        token = tokenResponse.data.token;
-        Cookies.set("authToken", token);
-      }*/
+      
 
       // Fetch Profile and Journal Entries
       const response = await axios.get<ProfileWithEntriesResponse>(
