@@ -20,14 +20,6 @@ interface NewJournalEntryFormProps {
     const [tagSuggestions, setTagSuggestions] = useState<TagProp[]>([]);
     const [name, SetName] = useState<string | null>(null);
 
-     // Function to get cookie value by name
-  const getCookie = (name: string): string | null => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-    return null;
-  };
-
   
   useEffect(() => {
     // Function to fetch user information
