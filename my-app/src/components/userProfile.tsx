@@ -1,14 +1,10 @@
 import React, { useEffect, useState,useRef,useCallback, useContext  } from "react";
 import axios from 'axios';
-import JournalEntryList from "./journalEntryList";
-import NewJournalEntryForm from "./newJournalEntryForm";
 import { useParams } from 'react-router-dom';
 import { ProfileWithEntriesResponse } from '../types';
 import JournalEntryProp from "../interface/JournalEntryProp";
 import Cookies from 'js-cookie';  // Import the js-cookie library
 import '../styles/profile.css';
-import TagsList from "./TagsList";
-import TagsFilter from "./TagsFilter";
 import UserJournalSection from "./UserJournalSection";
 import { useAuth } from "../components/Default/AuthProvider";
 import GoogleAd from "./GoogleAd";
@@ -26,12 +22,6 @@ const UserProfile: React.FC = () => {
   const [hasMoreEntries, setHasMoreEntries] = useState(true);
   const [page, setPage] = useState(1);
   const [tags, setTags] = useState<string[]>([]);
-
-
-
-
-  
-  const [authenticatedUserId, setAuthenticatedUserId] = useState<string | null>(null);
   const [filteredEntries, setFilteredEntries] = useState<JournalEntryProp[]>(entries);
   
 

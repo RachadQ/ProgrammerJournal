@@ -51,7 +51,7 @@ interface NewJournalEntryFormProps {
   
           if (response.status === 200) {
             const { _id } = response.data; // Assuming `_id` is the userId field in the response
-            console.log("this is the data" + response.data.name)
+            
             SetName(response.data.name);
             setUserId(_id); // Store userId in state
           } else {

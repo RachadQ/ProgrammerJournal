@@ -77,7 +77,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
 
-  const logout = () =>{
+  const logout = () =>{ 
+    //clear auth and set token and remove cookies
     setAuthToken(null);
     setAuthRefreshToken(null);
     Cookies.remove('authToken');

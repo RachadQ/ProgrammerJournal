@@ -48,7 +48,6 @@ const JournalEntry: React.FC<JournalEntryProps> = ({entry,isOwner,ownerName,onDe
 const handleEditEntry = async (updatedEntry: typeof entry) => {
   try {
     const response = await axios.put(`http://localhost:3001/edit/${updatedEntry._id}`, updatedEntry);
-    console.log('Edited entry:', response.data);
     onEdit(response.data); // Update the state in the parent component
     setIsEditing(false); // Close the form
   } catch (error) {
