@@ -10,7 +10,7 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(connectionStrin
 const containerClient = blobServiceClient.getContainerClient(containerName);
  // List all containers in the storage account
  const containers = blobServiceClient.listContainers();
-
+ console.log("Connection String:", process.env.AZURE_STORAGE_CONNECTION_STRING);
  // Function to test the connection by listing containers
 async function testConnection() {
     try {

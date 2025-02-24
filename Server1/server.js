@@ -138,10 +138,12 @@ app.post('/upload',upload.single('file'),async (req,res) =>
   try{
    
     const file = req.file;
+    console.log("File received:", file); // Debugging log
     if(!file)
     {
       return res.status(400).send("no file uploaded");
     }
+
     console.log("reach");
     //upload the file to azure Blob Storage
     await uploadFile(file);
