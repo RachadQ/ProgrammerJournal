@@ -42,11 +42,13 @@ console.log("Container Name:", containerName);
 const uploadFile = async (file) =>
 {
     
-    
+  if (!process.env.AZURE_STORAGE_CONNECTION_STRING) {
+    throw new Error("Azure Storage connection string not found in .env file");
+}
 
     try{
         console.log('Uploaded file:', file); 
-    const blobName = file.originlname;
+    const blobName = file.originalname;
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
     const uploadBlobResponse = await blockBlobClient.upload(file.buffer,file.buffer.length);
     return uploadBlobResponse;
