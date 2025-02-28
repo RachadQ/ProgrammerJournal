@@ -21,6 +21,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  
    // Memoized function to get the auth token from cookies
    const getAuthToken = useCallback(() => {
     return Cookies.get("authToken") || null;
@@ -85,6 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     Cookies.remove('refreshToken');
     navigate('/login');
   }
+  console.log(loginUserUserId + " and" + username)
   return (
     <AuthContext.Provider value={{
       authToken,
@@ -103,6 +105,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+
 
 // Custom hook to access the AuthContext
 export const useAuth = () => {
