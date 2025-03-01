@@ -175,13 +175,11 @@ const UserProfile: React.FC = () => {
         </div>
       </nav>
       <div className="text-center">
-        <div className="flex justify-center mb-2 md:mb-2">
-          <img
-            src={`https://www.bing.com/th?id=OIP.42gCaIWoZnhhRiZ7BzQXjQHaHa&w=174&h=185&c=8&rs=1&qlt=90&o=6&dpr=1.3&pid=3.1&rm=2`}
-            alt="Profile Picture"
-            className="w-32 h-32 md:w-48 md:h-48 rounded-full"
-          />
-        </div>
+     {/* File Upload Section */}
+  <section className="py-4">
+        <FileUpload userId={profile.id}/> {/* Using FileUpload Component here */}
+      </section>
+
         <h6 className="font-medium text-gray-600 text-lg md:text-2xl uppercase mb-0 md:mb-0">
           {profile.firstName} {profile.lastName}
         </h6>
@@ -194,11 +192,7 @@ const UserProfile: React.FC = () => {
     <GoogleAd/>
   </section>
 
-  {/* File Upload Section */}
-  <section className="py-4">
-        <FileUpload /> {/* Using FileUpload Component here */}
-      </section>
-
+  
   {/* Journal Entries Section */}
   <section className="py-6 md:py-4 mb-3">
     <UserJournalSection
