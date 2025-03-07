@@ -50,8 +50,10 @@ const uploadFile = async (file) =>
         console.log('Uploaded file:', file); 
     const blobName = file.originalname;
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-    const uploadBlobResponse = await blockBlobClient.upload(file.buffer,file.buffer.length);
-    return uploadBlobResponse;
+    //const uploadBlobResponse = await blockBlobClient.upload(file.buffer,file.buffer.length);
+    await blockBlobClient.upload(file.buffer, file.buffer.length);
+    const fileUrl = `${process.env.AZURE_STORAGE_BLOB_URL}/${blobName}`
+    return fileUrl;
     }
     catch(error){
 

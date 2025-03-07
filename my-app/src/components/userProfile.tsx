@@ -40,7 +40,7 @@ const UserProfile: React.FC = () => {
       );
 
       setProfile(response.data);
-
+      
       // Append new unique entries
       setEntries((prevEntries) => {
         const newEntries = response.data.journalEntries.filter(
@@ -177,7 +177,7 @@ const UserProfile: React.FC = () => {
       <div className="text-center">
      {/* File Upload Section */}
   <section className="py-4">
-        <FileUpload userId={profile.id}/> {/* Using FileUpload Component here */}
+        <FileUpload userId={profile.id} profilePicture={profile.profilePicture}/> {/* Using FileUpload Component here */}
       </section>
 
         <h6 className="font-medium text-gray-600 text-lg md:text-2xl uppercase mb-0 md:mb-0">

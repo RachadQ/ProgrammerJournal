@@ -13,7 +13,8 @@ const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
 const bcryptjs = require('bcryptjs');
 
-const usersController = require("./controller/users")
+const usersController = require("./controller/users");
+const { request } = require('http');
 // get config
 const config = require(__basedir + '/config')
 const {
@@ -131,7 +132,7 @@ router.get('/user-info', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/upload',upload.single('file'),async (req,res) =>
+app.post('/upload',authenticateToken,upload.single('file'),async (req,res) =>
 {
 
   
@@ -144,7 +145,21 @@ app.post('/upload',upload.single('file'),async (req,res) =>
       return res.status(400).send("no file uploaded");
     }
 
-    console.log("reach");
+    //save to MongoDB
+    const fileUrl = await uploadFile(file);// ensure the uploadFile returns a url
+    const userId = req.user.id; //Assume userId is sent in the request
+
+    //find user and update profile picture url
+    const updatedUser= await User.findByIdAndUpdate(
+      userId,
+    {profilePicture:fileUrl},
+    {new:true}
+  );
+
+  if(!updatedUser){
+    return res.status(404).send("User not found");
+  }
+   
     //upload the file to azure Blob Storage
     await uploadFile(file);
     res.send("File uploaded successfully!")
@@ -155,6 +170,8 @@ app.post('/upload',upload.single('file'),async (req,res) =>
     res.status(500).send("Error uploading file");
   }
 })
+
+
 
 //Update profile route
 router.put('/profile/:username',authenticateToken,async(req,res)=>
@@ -439,7 +456,7 @@ router.get('/search',async (req,res) =>
         ]
       }
     ).limit(10);
-    console.log(users);
+    
 
      // Return the users' first name, last name, and username
      res.status(200).json(
@@ -488,7 +505,7 @@ router.get('/user/:username', async (req,res) =>{
       .limit(Number(limit))
       .exec();
     
-      console.log( "The journal entry" + journalEntries);
+      
      
     
     // Fetch the journal entries for this user by their ObjectId
