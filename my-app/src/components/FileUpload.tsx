@@ -78,7 +78,7 @@ const FileUpload = ({userId}) => {
       </div>
 
       {isOpen && (
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md mx-auto text-center border">
+      <div key={isOpen.toString()} className="bg-white p-6 rounded-lg shadow-lg max-w-md mx-auto text-center border">
           <h2 className="text-xl font-semibold mb-4">Upload an Image</h2>
           <div
             {...getRootProps()}
